@@ -1,6 +1,21 @@
-import cmd
+
 import os
 import subprocess
+required_dependencies = ['cmd', 'time', 'platform', 'sys', 'shutil', 'requests', 'readline', 'colorama']
+def install_dependencies():
+    # Check and install missing dependencies
+    for dep in required_dependencies:
+        try:
+            # Try importing the module to see if it's installed
+            __import__(dep)
+        except ImportError:
+            # If not installed, install the package using pip
+            print(f"{dep} not found. Installing...")
+            subprocess.check_call([sys.executable, "-m", "pip", "install", dep])
+
+# Install dependencies before running the main script
+install_dependencies()
+import cmd
 import time
 import platform
 import sys
@@ -17,7 +32,7 @@ class Terminal(cmd.Cmd):
     prompt = Fore.YELLOW + os.getlogin().lower() + "@" + platform.node().lower() + "~> " + Style.RESET_ALL
     history_file = os.path.join(os.path.expanduser("~"), ".py_terminal_history")
     GITHUB_URL = "https://raw.githubusercontent.com/SethJ152/PyTerminal/main/terminal.py"  # GitHub URL of the terminal.py file
-    current_version = "1.4.0 (A)"
+    current_version = "1.5.0 (A)"
     def do_version(self, _):
         
         """Download the latest terminal.py from GitHub and replace the current script."""
