@@ -1,4 +1,4 @@
-import cmd
+ting import cmd
 import os
 import subprocess
 import time
@@ -98,7 +98,7 @@ class Terminal(cmd.Cmd):
             if commit_response.status_code == 200:
                 commit_data = commit_response.json()
                 latest_commit_name = commit_data['commit']['message']
-                print(Fore.CYAN + f"Latest commit: {latest_commit_name}" + Style.RESET_ALL)
+                print(Fore.CYAN + f"Fetching Version: {latest_commit_name}" + Style.RESET_ALL)
             else:
                 print(Fore.RED + "Error: Unable to fetch the latest commit from GitHub." + Style.RESET_ALL)
 
