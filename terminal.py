@@ -89,7 +89,7 @@ class Terminal(cmd.Cmd):
             response = requests.get(self.GITHUB_URL)
             if response.status_code == 200:
                 # Write the new code to terminal.py
-                with open("/home/seth/Desktop/Python/terminal.py", "w") as f:
+                with open("terminal.py", "w") as f:
                     f.write(response.text)
                 print(Fore.GREEN + "Terminal updated successfully!" + Style.RESET_ALL)
 
@@ -183,6 +183,7 @@ class Terminal(cmd.Cmd):
     def print_help(self):
         """Display available commands and descriptions."""
         commands = [
+            ("update", "Updates the terminal code"),
             ("exit", "Exit the terminal"),
             ("hostname", "Display the system hostname"),
             ("shutdown", "Shutdown the system"),
@@ -192,7 +193,6 @@ class Terminal(cmd.Cmd):
             ("uptime", "Display system uptime"),
             ("processes", "Show the current running processes"),
             ("clearhistory", "Clear the terminal command history"),
-            ("update", "Re-run the terminal program"),
             ("list [path]", "List directory contents"),
             ("changedir [path]", "Change directory"),
             ("currentdir", "Print current working directory"),
