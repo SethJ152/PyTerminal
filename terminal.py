@@ -17,7 +17,7 @@ class Terminal(cmd.Cmd):
     prompt = Fore.YELLOW + os.getlogin().lower() + "@" + platform.node().lower() + "~> " + Style.RESET_ALL
     history_file = os.path.join(os.path.expanduser("~"), ".py_terminal_history")
     GITHUB_URL = "https://raw.githubusercontent.com/SethJ152/PyTerminal/main/terminal.py"  # GitHub URL of the terminal.py file
-    current_version = "1.3.1 (B)"
+    current_version = "1.3.2 (B)"
     def do_version(self, _):
         
         """Download the latest terminal.py from GitHub and replace the current script."""
@@ -144,7 +144,7 @@ class Terminal(cmd.Cmd):
                 else:
                     print(Fore.RED + "Error: Unable to fetch the terminal code from GitHub." + Style.RESET_ALL)
             else:
-                print(Fore.RED + "Cancelled." Style.RESETALL)
+                print(Fore.RED + "Cancelled." Style.RESET_ALL)
 
         except requests.exceptions.RequestException as e:
             print(Fore.RED + f"Error during update: {str(e)}" + Style.RESET_ALL)
