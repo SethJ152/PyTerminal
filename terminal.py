@@ -51,7 +51,22 @@ class Terminal(cmd.Cmd):
             subprocess.run("reboot", shell=True)
         else:
             subprocess.run("shutdown /r /f", shell=True)
-
+            
+    def do_version(self, _):
+        """Download the latest terminal.py from GitHub and replace the current script."""
+        print(Fore.YELLOW + "Updating system..." + Style.RESET_ALL)
+        try:
+            # Get the latest commit name from GitHub
+            commit_url = "https://api.github.com/repos/SethJ152/PyTerminal/commits/main"
+            commit_response = requests.get(commit_url)
+            
+            if commit_response.status_code == 200:
+                commit_data = commit_response.json()
+                latest_commit_name = commit_data['commit']['message']
+                print(Fore.CYAN + f"Fetching Version: {latest_commit_name}" + Style.RESET_ALL)
+            else:
+                print(Fore.RED + "Error: Unable to fetch the latest commit from GitHub." + Style.RESET_ALL)
+                
     def do_pause(self, time_to_sleep):
         """Pause execution for a given number of seconds."""
         try:
