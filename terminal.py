@@ -9,7 +9,7 @@ import requests
 import readline
 from colorama import init, Fore, Style
 
-# Initialize colorama for colored text output
+# Initialize colorama for colored text output (ensure Windows compatibility)
 init(autoreset=True)
 
 class Terminal(cmd.Cmd):
@@ -113,7 +113,6 @@ class Terminal(cmd.Cmd):
                 print(Fore.RED + "Error: Unable to fetch the terminal code from GitHub." + Style.RESET_ALL)
         except requests.exceptions.RequestException as e:
             print(Fore.RED + f"Error during update: {str(e)}" + Style.RESET_ALL)
-
 
     # Other previously implemented commands...
 
@@ -273,7 +272,9 @@ class Terminal(cmd.Cmd):
         except Exception as e:
             print(Fore.RED + f"Error: {e}" + Style.RESET_ALL)
 
-if __name__ == '__main__':
-    Terminal().cmdloop()
-else:
-    print("This uses the PyTerminal kit by SethJ152")
+while True:
+    try:
+        if __name__ == '__main__':
+            Terminal().cmdloop()
+    except:
+        print("A major error occured and we are restarting the system...")
