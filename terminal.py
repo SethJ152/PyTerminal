@@ -18,6 +18,23 @@ class Terminal(cmd.Cmd):
     history_file = os.path.join(os.path.expanduser("~"), ".py_terminal_history")
     GITHUB_URL = "https://raw.githubusercontent.com/SethJ152/PyTerminal/main/terminal.py"  # GitHub URL of the terminal.py file
 
+    def do_version(self, _):
+        """Download the latest terminal.py from GitHub and replace the current script."""
+        print(Fore.YELLOW + "Updating system..." + Style.RESET_ALL)
+        try:
+            # Get the latest commit name from GitHub
+            commit_url = "https://api.github.com/repos/SethJ152/PyTerminal/commits/main"
+            commit_response = requests.get(commit_url)
+            
+            if commit_response.status_code == 200:
+                commit_data = commit_response.json()
+                latest_commit_name = commit_data['commit']['message']
+                print(Fore.CYAN + f"Latest Version: {latest_commit_name}" + Style.RESET_ALL)
+            else:
+                print(Fore.RED + "Error: Unable to fetch the latest commit from GitHub." + Style.RESET_ALL)
+
+        except requests.exceptions.RequestException as e:
+            print(Fore.RED + f"Error fetching data: {str(e)}" + Style.RESET_ALL)
     def preloop(self):
         """Load command history if available."""
         if os.path.exists(self.history_file):
