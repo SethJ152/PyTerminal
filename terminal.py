@@ -17,7 +17,7 @@ class Terminal(cmd.Cmd):
     prompt = Fore.YELLOW + os.getlogin().lower() + "@" + platform.node().lower() + "~> " + Style.RESET_ALL
     history_file = os.path.join(os.path.expanduser("~"), ".py_terminal_history")
     GITHUB_URL = "https://raw.githubusercontent.com/SethJ152/PyTerminal/main/terminal.py"  # GitHub URL of the terminal.py file
-    current_version = "1.3.2 (B)"
+    current_version = "1.4.0 (A)"
     def do_version(self, _):
         
         """Download the latest terminal.py from GitHub and replace the current script."""
@@ -36,6 +36,40 @@ class Terminal(cmd.Cmd):
 
         except requests.exceptions.RequestException as e:
             print(Fore.RED + f"Error fetching data: {str(e)}" + Style.RESET_ALL)
+    def do_ping(self, host):
+        """Ping a host: ping [hostname or IP]"""
+        if not host:
+            print(Fore.RED + "Error: Please specify a host to ping." + Style.RESET_ALL)
+            return
+        command = ["ping", "-c", "4", host] if os.name != "nt" else ["ping", "-n", "4", host]
+        self._execute_command(" ".join(command))
+    def do_whois(self, domain):
+        """Perform WHOIS lookup: whois [domain]"""
+        if not domain:
+            print(Fore.RED + "Error: Please specify a domain." + Style.RESET_ALL)
+            return
+        self._execute_command(f"whois {domain}")
+
+    def do_ip(self, _):
+        """Fetch public IP and location: iplookup"""
+        try:
+            response = requests.get("https://ipinfo.io/json").json()
+            ip = response.get("ip", "Unknown")
+            city = response.get("city", "Unknown")
+            region = response.get("region", "Unknown")
+            country = response.get("country", "Unknown")
+            print(Fore.YELLOW + f"Public IP: {ip}, Location: {city}, {region}, {country}" + Style.RESET_ALL)
+        except Exception as e:
+            print(Fore.RED + f"Error fetching IP details: {str(e)}" + Style.RESET_ALL)
+
+    def do_calculate(self, expression):
+        """Perform a simple calculation: calculate [expression]"""
+        try:
+            result = eval(expression)
+            print(Fore.GREEN + f"Result: {result}" + Style.RESET_ALL)
+        except Exception as e:
+            print(Fore.RED + f"Error: {str(e)}" + Style.RESET_ALL)
+
     def preloop(self):
         """Load command history if available."""
         if os.path.exists(self.history_file):
@@ -281,6 +315,9 @@ class Terminal(cmd.Cmd):
             ("currentuser", "Display current user"),
             ("currenttime", "Display the current date and time"),
             ("commandhistory", "Display command history"),
+            ("ip", "Shows the ip and location of the user"),
+            ("ping", "Pings a server"),
+            ("whosi", "Domain lookup"),
             ("help", "List available commands"),
         ]
         print(Fore.CYAN + "Available commands:" + Style.RESET_ALL)
