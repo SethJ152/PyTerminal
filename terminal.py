@@ -194,7 +194,7 @@ class Terminal(cmd.Cmd):
             self.print_help()
     def do_server(self, _):
         """Run server-related commands if the user is seth and hostname is alpha on Linux Mint."""
-        if os.getlogin() == "seth" and platform.node() == "alpha" and platform.system() == "Linux":
+        if os.getlogin().lower() == "seth" and platform.node().lower() == "alpha" and platform.system().lower() == "linux":
             try:
                 print(Fore.GREEN + "Running cloudflared tunnel and starting Server.py..." + Style.RESET_ALL)
                 
