@@ -95,17 +95,25 @@ class Terminal(cmd.Cmd):
             response = requests.get(self.GITHUB_URL)
             if response.status_code == 200:
                 # Write the new code to terminal.py
-                with open("terminal.py", "w") as f:
+                script_path = os.path.abspath(__file__)  # Get the full path of the current script
+                with open(script_path, "w") as f:
                     f.write(response.text)
                 print(Fore.GREEN + "Terminal updated successfully!" + Style.RESET_ALL)
 
                 # Restart the terminal program with the updated code
-                python = sys.executable
-                os.execl(python, python, *sys.argv)
+                python = sys.executable  # Get the Python executable path
+                if platform.system() == "Windows":
+                    # Windows-specific restart method using subprocess to avoid terminal closing issues
+                    subprocess.Popen([python, script_path])
+                else:
+                    # For Unix-like systems (Linux/macOS), using os.execl to restart
+                    os.execl(python, python, *sys.argv)
+
             else:
                 print(Fore.RED + "Error: Unable to fetch the terminal code from GitHub." + Style.RESET_ALL)
         except requests.exceptions.RequestException as e:
             print(Fore.RED + f"Error during update: {str(e)}" + Style.RESET_ALL)
+
 
     # Other previously implemented commands...
 
