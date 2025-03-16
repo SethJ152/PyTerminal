@@ -19,8 +19,8 @@ class Terminal(cmd.Cmd):
     GITHUB_URL = "https://raw.githubusercontent.com/SethJ152/PyTerminal/main/terminal.py"  # GitHub URL of the terminal.py file
 
     def do_version(self, _):
+        current_version = "1.3.0"
         """Download the latest terminal.py from GitHub and replace the current script."""
-        print(Fore.YELLOW + "Updating system..." + Style.RESET_ALL)
         try:
             # Get the latest commit name from GitHub
             commit_url = "https://api.github.com/repos/SethJ152/PyTerminal/commits/main"
@@ -30,6 +30,7 @@ class Terminal(cmd.Cmd):
                 commit_data = commit_response.json()
                 latest_commit_name = commit_data['commit']['message']
                 print(Fore.CYAN + f"Latest Version: {latest_commit_name}" + Style.RESET_ALL)
+                print(Fore.CYAN + f"Current Version: {current_version}" + Style.RESET_ALL)
             else:
                 print(Fore.RED + "Error: Unable to fetch the latest commit from GitHub." + Style.RESET_ALL)
 
@@ -248,6 +249,7 @@ class Terminal(cmd.Cmd):
         """Display available commands and descriptions."""
         commands = [
             ("update", "Updates the terminal code"),
+            ("version", "Shows the current and latest version"),
             ("exit", "Exit the terminal"),
             ("hostname", "Display the system hostname"),
             ("shutdown", "Shutdown the system"),
