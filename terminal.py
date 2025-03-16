@@ -144,7 +144,7 @@ class Terminal(cmd.Cmd):
                 else:
                     print(Fore.RED + "Error: Unable to fetch the terminal code from GitHub." + Style.RESET_ALL)
             else:
-                print(Fore.RED + "Cancelled." Style.RESET_ALL)
+                print(Fore.RED + "Cancelled." + Style.RESET_ALL)
 
         except requests.exceptions.RequestException as e:
             print(Fore.RED + f"Error during update: {str(e)}" + Style.RESET_ALL)
