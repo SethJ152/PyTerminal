@@ -7,7 +7,7 @@ import sys
 import shutil
 import requests
 import readline
-from colorama import init, Fore, Styles
+from colorama import init, Fore, Style
 
 # Initialize colorama for colored text output
 init(autoreset=True)
@@ -89,7 +89,7 @@ class Terminal(cmd.Cmd):
             response = requests.get(self.GITHUB_URL)
             if response.status_code == 200:
                 # Write the new code to terminal.py
-                with open("terminal.py", "w") as f:
+                with open("/home/seth/Desktop/Python/terminal.py", "w") as f:
                     f.write(response.text)
                 print(Fore.GREEN + "Terminal updated successfully!" + Style.RESET_ALL)
 
