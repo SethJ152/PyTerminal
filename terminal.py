@@ -5,6 +5,7 @@ import time
 import platform
 import sys
 import shutil
+import requests
 import readline
 from colorama import init, Fore, Style
 
@@ -15,6 +16,7 @@ class Terminal(cmd.Cmd):
     intro = Fore.GREEN + "Welcome to Alpha:v2\nType 'help' to see available commands." + Style.RESET_ALL
     prompt = Fore.YELLOW + os.getlogin() + "@alpha:v2 > " + Style.RESET_ALL
     history_file = ".py_terminal_history"
+    GITHUB_URL = "https://raw.githubusercontent.com/SethJ152/PyTerminal/main/terminal.py"  # GitHub URL of the terminal.py file
 
     def preloop(self):
         """Load command history if available."""
@@ -80,12 +82,24 @@ class Terminal(cmd.Cmd):
             print(Fore.RED + f"Error clearing history: {str(e)}" + Style.RESET_ALL)
 
     def do_update(self, _):
-        """Re-run the terminal program."""
-        print(Fore.YELLOW + "Updating system..." + Style.RESET_ALL)
-        # Re-run the terminal program by executing the current script again
-        python = sys.executable
-        script = sys.argv[0]
-        os.execv(python, [python, script])
+        """Download the latest terminal.py from GitHub and replace the current script."""
+        print(Fore.YELLOW + "Updating terminal... Fetching the latest code..." + Style.RESET_ALL)
+        try:
+            # Download the terminal.py file from GitHub
+            response = requests.get(self.GITHUB_URL)
+            if response.status_code == 200:
+                # Write the new code to terminal.py
+                with open("terminal.py", "w") as f:
+                    f.write(response.text)
+                print(Fore.GREEN + "Terminal updated successfully!" + Style.RESET_ALL)
+
+                # Restart the terminal program with the updated code
+                python = sys.executable
+                os.execl(python, python, *sys.argv)
+            else:
+                print(Fore.RED + "Error: Unable to fetch the terminal code from GitHub." + Style.RESET_ALL)
+        except requests.exceptions.RequestException as e:
+            print(Fore.RED + f"Error during update: {str(e)}" + Style.RESET_ALL)
 
     # Other previously implemented commands...
 
@@ -218,46 +232,32 @@ class Terminal(cmd.Cmd):
     def _print_file(self, filename):
         """Print file contents."""
         try:
-            with open(filename, 'r') as file:
+            with open(filename, "r") as file:
                 print(Fore.WHITE + file.read() + Style.RESET_ALL)
-        except Exception as e:
-            print(Fore.RED + f"Error: Unable to read file '{filename}': {str(e)}" + Style.RESET_ALL)
+        except FileNotFoundError:
+            print(Fore.RED + f"Error: No such file: '{filename}'" + Style.RESET_ALL)
 
     def _execute_command(self, command):
-        """Execute a shell command and display output."""
+        """Execute a system command."""
         try:
-            result = subprocess.run(command, shell=True, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            print(Fore.WHITE + result.stdout.decode() + Style.RESET_ALL)
-        except subprocess.CalledProcessError as e:
-            print(Fore.RED + f"Error: {e.stderr.decode()}" + Style.RESET_ALL)
+            subprocess.run(command, shell=True, check=True)
+        except subprocess.CalledProcessError:
+            print(Fore.RED + f"Error: Command '{command}' failed" + Style.RESET_ALL)
 
-    def _handle_file_operation(self, file_func, dir_func, args):
-        """Handle file and directory operations like copy/move."""
-        args = args.split()
-        if len(args) != 2:
-            print(Fore.YELLOW + "Usage: [command] [source] [destination]" + Style.RESET_ALL)
-            return
-        source, destination = args
-        if not os.path.exists(source):
-            print(Fore.RED + f"Error: No such file or directory: '{source}'" + Style.RESET_ALL)
-            return
+    def _handle_file_operation(self, copy_func, move_func, args):
+        """Helper method to handle copy and move operations."""
         try:
+            source, destination = args.split()
             if os.path.isdir(source):
-                dir_func(source, destination)
+                move_func(source, destination)
+                print(Fore.GREEN + f"Directory moved from {source} to {destination}" + Style.RESET_ALL)
             else:
-                file_func(source, destination)
-            print(Fore.GREEN + f"'{source}' successfully processed to '{destination}'" + Style.RESET_ALL)
-        except PermissionError:
-            print(Fore.RED + f"Error: Permission denied: '{source}' or '{destination}'" + Style.RESET_ALL)
-        except OSError as e:
-            print(Fore.RED + f"Error: {str(e)}" + Style.RESET_ALL)
+                copy_func(source, destination)
+                print(Fore.GREEN + f"File copied from {source} to {destination}" + Style.RESET_ALL)
+        except ValueError:
+            print(Fore.RED + "Error: Please provide both source and destination" + Style.RESET_ALL)
+        except Exception as e:
+            print(Fore.RED + f"Error: {e}" + Style.RESET_ALL)
 
-    def default(self, line):
-        """Handle all other commands."""
-        if line.strip() == "":
-            print(Fore.RED + "Error: Command cannot be empty." + Style.RESET_ALL)
-        else:
-            print(Fore.YELLOW + f"Unknown command: {line.strip()}. Type 'help' for a list of commands." + Style.RESET_ALL)
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     Terminal().cmdloop()
