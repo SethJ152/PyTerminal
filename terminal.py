@@ -7,7 +7,7 @@ import sys
 import shutil
 import requests
 import readline
-from colorama import init, Fore, Style
+from colorama import init, Fore, Styles
 
 # Initialize colorama for colored text output
 init(autoreset=True)
