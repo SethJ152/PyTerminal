@@ -1,4 +1,4 @@
-ting import cmd
+import cmd
 import os
 import subprocess
 import time
