@@ -91,8 +91,20 @@ class Terminal(cmd.Cmd):
         """Download the latest terminal.py from GitHub and replace the current script."""
         print(Fore.YELLOW + "Updating system..." + Style.RESET_ALL)
         try:
+            # Get the latest commit name from GitHub
+            commit_url = "https://api.github.com/repos/SethJ152/PyTerminal/commits/main"
+            commit_response = requests.get(commit_url)
+            
+            if commit_response.status_code == 200:
+                commit_data = commit_response.json()
+                latest_commit_name = commit_data['commit']['message']
+                print(Fore.CYAN + f"Latest commit: {latest_commit_name}" + Style.RESET_ALL)
+            else:
+                print(Fore.RED + "Error: Unable to fetch the latest commit from GitHub." + Style.RESET_ALL)
+
             # Download the terminal.py file from GitHub
-            response = requests.get(self.GITHUB_URL)
+            script_url = self.GITHUB_URL
+            response = requests.get(script_url)
             if response.status_code == 200:
                 # Write the new code to terminal.py
                 script_path = os.path.abspath(__file__)  # Get the full path of the current script
@@ -111,8 +123,10 @@ class Terminal(cmd.Cmd):
 
             else:
                 print(Fore.RED + "Error: Unable to fetch the terminal code from GitHub." + Style.RESET_ALL)
+
         except requests.exceptions.RequestException as e:
             print(Fore.RED + f"Error during update: {str(e)}" + Style.RESET_ALL)
+
 
     # Other previously implemented commands...
 
