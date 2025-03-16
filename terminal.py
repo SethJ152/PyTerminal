@@ -199,7 +199,9 @@ class Terminal(cmd.Cmd):
 
     def do_systeminfo(self, _):
         """Show system information."""
-        print(Fore.GREEN + str(platform.uname()) + Style.RESET_ALL)
+        print("Hostname: " + platform.node())
+        print("User:     " + os.getlogin())
+        print("OS:       " + platform.system())
 
     def do_currentuser(self, _):
         """Display the current user."""
