@@ -13,7 +13,7 @@ from colorama import init, Fore, Style
 init(autoreset=True)
 
 class Terminal(cmd.Cmd):
-    intro = Fore.GREEN + "Welcome to Alpha:v2\nType 'help' to see available commands." + Style.RESET_ALL
+    intro = Fore.GREEN + "Welcome to PyTerminal for " + platform.system() + "\nType 'help' to see available commands." + Style.RESET_ALL
     prompt = Fore.YELLOW + os.getlogin() + "@" + platform.node() + "~> " + Style.RESET_ALL
     history_file = os.path.join(os.path.expanduser("~"), ".py_terminal_history")
     GITHUB_URL = "https://raw.githubusercontent.com/SethJ152/PyTerminal/main/terminal.py"  # GitHub URL of the terminal.py file
