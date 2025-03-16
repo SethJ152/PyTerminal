@@ -15,7 +15,7 @@ init(autoreset=True)
 class Terminal(cmd.Cmd):
     intro = Fore.GREEN + "Welcome to Alpha:v2\nType 'help' to see available commands." + Style.RESET_ALL
     prompt = Fore.YELLOW + os.getlogin() + "@alpha:v2 > " + Style.RESET_ALL
-    history_file = ".py_terminal_history"
+    history_file = os.path.join(os.path.expanduser("~"), ".py_terminal_history")
     GITHUB_URL = "https://raw.githubusercontent.com/SethJ152/PyTerminal/main/terminal.py"  # GitHub URL of the terminal.py file
 
     def preloop(self):
@@ -39,12 +39,18 @@ class Terminal(cmd.Cmd):
     def do_shutdown(self, _):
         """Shutdown the system."""
         print(Fore.RED + "Shutting down the system..." + Style.RESET_ALL)
-        os.system("shutdown /s /f" if os.name == "nt" else "sudo shutdown now")
+        if os.name == "nt":
+            subprocess.run("shutdown /s /f", shell=True)
+        else:
+            subprocess.run("sudo shutdown now", shell=True)
 
     def do_reboot(self, _):
         """Reboot the system."""
         print(Fore.YELLOW + "Rebooting the system..." + Style.RESET_ALL)
-        os.system("reboot" if os.name != "nt" else "shutdown /r /f")
+        if os.name != "nt":
+            subprocess.run("reboot", shell=True)
+        else:
+            subprocess.run("shutdown /r /f", shell=True)
 
     def do_pause(self, time_to_sleep):
         """Pause execution for a given number of seconds."""
