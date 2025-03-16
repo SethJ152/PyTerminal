@@ -192,6 +192,26 @@ class Terminal(cmd.Cmd):
             cmd.Cmd.do_help(self, command)
         else:
             self.print_help()
+    def do_server(self, _):
+        """Run server-related commands if the user is seth and hostname is alpha on Linux Mint."""
+        if os.getlogin() == "seth" and platform.node() == "alpha" and platform.system() == "Linux":
+            try:
+                print(Fore.GREEN + "Running cloudflared tunnel and starting Server.py..." + Style.RESET_ALL)
+                
+                # Start cloudflared tunnel in the background
+                cloudflared_process = subprocess.Popen(["cloudflared", "tunnel", "run", "sdjdrive"])
+                
+                # Start Server.py in the background
+                server_process = subprocess.Popen(["python3", "/home/seth/Desktop/Server.py"])
+                
+                # Optionally, wait for the processes to end (if you want to handle it further)
+                cloudflared_process.wait()
+                server_process.wait()
+                
+            except Exception as e:
+                print(Fore.RED + f"Error: {str(e)}" + Style.RESET_ALL)
+        else:
+            print(Fore.RED + "Error: This command can only be run by 'seth' on the 'alpha' machine in Linux Mint." + Style.RESET_ALL)
 
     def print_help(self):
         """Display available commands and descriptions."""
