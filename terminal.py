@@ -19,7 +19,7 @@ class Terminal(cmd.Cmd):
     GITHUB_URL = "https://raw.githubusercontent.com/SethJ152/PyTerminal/main/terminal.py"  # GitHub URL of the terminal.py file
 
     def do_version(self, _):
-        current_version = "1.3.0"
+        current_version = "1.3.1 (B)"
         """Download the latest terminal.py from GitHub and replace the current script."""
         try:
             # Get the latest commit name from GitHub
