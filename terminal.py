@@ -14,7 +14,7 @@ init(autoreset=True)
 
 class Terminal(cmd.Cmd):
     intro = Fore.GREEN + "Welcome to PyTerminal for " + platform.system() + "\nType 'help' to see available commands." + Style.RESET_ALL
-    prompt = Fore.YELLOW + os.getlogin() + "@" + platform.node() + "~> " + Style.RESET_ALL
+    prompt = Fore.YELLOW + os.getlogin().lower() + "@" + platform.node().lower() + "~> " + Style.RESET_ALL
     history_file = os.path.join(os.path.expanduser("~"), ".py_terminal_history")
     GITHUB_URL = "https://raw.githubusercontent.com/SethJ152/PyTerminal/main/terminal.py"  # GitHub URL of the terminal.py file
 
@@ -89,7 +89,7 @@ class Terminal(cmd.Cmd):
 
     def do_update(self, _):
         """Download the latest terminal.py from GitHub and replace the current script."""
-        print(Fore.YELLOW + "Updating terminal... Fetching the latest code..." + Style.RESET_ALL)
+        print(Fore.YELLOW + "Updating system..." + Style.RESET_ALL)
         try:
             # Download the terminal.py file from GitHub
             response = requests.get(self.GITHUB_URL)
