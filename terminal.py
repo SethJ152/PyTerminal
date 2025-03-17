@@ -1,4 +1,3 @@
-
 import os
 import subprocess
 required_dependencies = ['cmd', 'time', 'platform', 'sys', 'shutil', 'requests', 'readline', 'colorama']
@@ -51,6 +50,7 @@ class Terminal(cmd.Cmd):
 
         except requests.exceptions.RequestException as e:
             print(Fore.RED + f"Error fetching data: {str(e)}" + Style.RESET_ALL)
+
     def do_ping(self, host):
         """Ping a host: ping [hostname or IP]"""
         if not host:
@@ -198,7 +198,41 @@ class Terminal(cmd.Cmd):
         except requests.exceptions.RequestException as e:
             print(Fore.RED + f"Error during update: {str(e)}" + Style.RESET_ALL)
 
+    def do_patch(self, _):
+        """Download the latest terminal.py from GitHub and replace the current script."""
+        try:
+            # Get the latest commit name from GitHub
+            commit_url = "https://api.github.com/repos/SethJ152/PyTerminal/commits/main"
+            commit_response = requests.get(commit_url)
+            
+            if commit_response.status_code == 200:
+                commit_data = commit_response.json()
+                latest_commit_name = commit_data['commit']['message']
+                print(self.current_version)
+            else:
+                print(Fore.RED + "Error: Unable to fetch the latest commit from GitHub." + Style.RESET_ALL)
+            # Download the terminal.py file from GitHub
+            script_url = self.GITHUB_URL
+            response = requests.get(script_url)
+            if response.status_code == 200:
+                # Write the new code to terminal.py
+                script_path = os.path.abspath(__file__)  # Get the full path of the current script
+                with open(script_path, "w") as f:
+                    f.write(response.text)
+                # Restart the terminal program with the updated code
+                python = sys.executable  # Get the Python executable path
+                if platform.system() == "Windows":
+                    # Windows-specific restart method using subprocess to avoid terminal closing issues
+                    subprocess.Popen([python, script_path])
+                else:
+                    # For Unix-like systems (Linux/macOS), using os.execl to restart
+                    os.execl(python, python, *sys.argv)
 
+            else:
+                print(Fore.RED + "Error: Unable to fetch the terminal code from GitHub." + Style.RESET_ALL)
+
+        except requests.exceptions.RequestException as e:
+            print(Fore.RED + f"Error during update: {str(e)}" + Style.RESET_ALL)
     # Other previously implemented commands...
 
     def do_list(self, path="."):
@@ -304,6 +338,7 @@ class Terminal(cmd.Cmd):
         """Display available commands and descriptions."""
         commands = [
             ("update", "Updates the terminal code"),
+            ("patch", "Patches the terminal code"),
             ("version", "Shows the current and latest version"),
             ("exit", "Exit the terminal"),
             ("hostname", "Display the system hostname"),
@@ -388,4 +423,4 @@ while True:
         if __name__ == '__main__':
             Terminal().cmdloop()
     except:
-        print("A major error occured and we are restarting the system...")
+        pass
