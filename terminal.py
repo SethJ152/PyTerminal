@@ -31,7 +31,7 @@ class Terminal(cmd.Cmd):
     prompt = Fore.YELLOW + os.getlogin().lower() + "@" + platform.node().lower() + "~> " + Style.RESET_ALL
     history_file = os.path.join(os.path.expanduser("~"), ".py_terminal_history")
     GITHUB_URL = "https://raw.githubusercontent.com/SethJ152/PyTerminal/main/terminal.py"  # GitHub URL of the terminal.py file
-    current_version = "1.5.9"
+    current_version = "1.6.0"
     def do_version(self, _):
         
         """Download the latest terminal.py from GitHub and replace the current script."""
@@ -387,6 +387,7 @@ class Terminal(cmd.Cmd):
 while True:
     try:
         if __name__ == '__main__':
+            os.system("cls" if os.name == "nt" else "clear")
             Terminal().cmdloop()
     except Exception as e:
         print(f"A major error occured and we are restarting the system... {e}")
