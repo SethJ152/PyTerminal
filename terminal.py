@@ -31,7 +31,7 @@ class Terminal(cmd.Cmd):
     prompt = Fore.YELLOW + os.getlogin().lower() + "@" + platform.node().lower() + "~> " + Style.RESET_ALL
     history_file = os.path.join(os.path.expanduser("~"), ".py_terminal_history")
     GITHUB_URL = "https://raw.githubusercontent.com/SethJ152/PyTerminal/main/terminal.py"  # GitHub URL of the terminal.py file
-    current_version = "1.5.7"
+    current_version = "1.5.8"
     def do_version(self, _):
         
         """Download the latest terminal.py from GitHub and replace the current script."""
@@ -156,20 +156,18 @@ class Terminal(cmd.Cmd):
     def do_update(self, _):
         """Download the latest terminal.py from GitHub and replace the current script."""
         print(Fore.YELLOW + "Gathering Data..." + Style.RESET_ALL)
+        commit_url = "https://api.github.com/repos/SethJ152/PyTerminal/commits/main"
+        commit_response = requests.get(commit_url)
+        # Get the latest commit name from GitHub
+        if commit_response.status_code == 200:
+            commit_data = commit_response.json()
+            latest_commit_name = commit_data['commit']['message']
+            
+        else:
+            print(Fore.RED + "Error: Unable to fetch the latest commit from GitHub." + Style.RESET_ALL)
         try:
-            
             if not self.current_version == latest_commit_name:
-                # Get the latest commit name from GitHub
-                commit_url = "https://api.github.com/repos/SethJ152/PyTerminal/commits/main"
-                commit_response = requests.get(commit_url)
-            
-                if commit_response.status_code == 200:
-                    commit_data = commit_response.json()
-                    latest_commit_name = commit_data['commit']['message']
-                    print(Fore.CYAN + f"Fetching Version: {latest_commit_name}" + Style.RESET_ALL)
-                else:
-                    print(Fore.RED + "Error: Unable to fetch the latest commit from GitHub." + Style.RESET_ALL)
-                print(f"Upgrading from {self.current_version} to {latest_commit_name}...")
+                print(Fore.CYAN + f"Updating to version: {latest_commit_name}" + Style.RESET_ALL)
                 pr = str(input("Are you sure? (y/n): "))
                 if pr.lower() == "y":
                     # Download the terminal.py file from GitHub
