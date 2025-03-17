@@ -31,7 +31,7 @@ class Terminal(cmd.Cmd):
     prompt = Fore.YELLOW + os.getlogin().lower() + "@" + platform.node().lower() + "~> " + Style.RESET_ALL
     history_file = os.path.join(os.path.expanduser("~"), ".py_terminal_history")
     GITHUB_URL = "https://raw.githubusercontent.com/SethJ152/PyTerminal/main/terminal.py"  # GitHub URL of the terminal.py file
-    current_version = "1.6.1"
+    current_version = "1.6.2"
     def do_version(self, _):
         
         """Download the latest terminal.py from GitHub and replace the current script."""
@@ -332,8 +332,8 @@ class Terminal(cmd.Cmd):
             ("currenttime", "Display the current date and time"),
             ("commandhistory", "Display command history"),
             ("ip", "Shows the ip and location of the user"),
-            ("ping", "Pings a server"),
-            ("whosi", "Domain lookup"),
+            ("ping [domain]", "Pings a server"),
+            ("whois [domain]", "Domain lookup"),
             ("help", "List available commands"),
         ]
         print(Fore.CYAN + "Available commands:" + Style.RESET_ALL)
