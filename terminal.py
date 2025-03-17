@@ -31,7 +31,7 @@ class Terminal(cmd.Cmd):
     prompt = Fore.YELLOW + os.getlogin().lower() + "@" + platform.node().lower() + "~> " + Style.RESET_ALL
     history_file = os.path.join(os.path.expanduser("~"), ".py_terminal_history")
     GITHUB_URL = "https://raw.githubusercontent.com/SethJ152/PyTerminal/main/terminal.py"  # GitHub URL of the terminal.py file
-    current_version = "1.5.8"
+    current_version = "1.5.9"
     def do_version(self, _):
         
         """Download the latest terminal.py from GitHub and replace the current script."""
@@ -194,7 +194,7 @@ class Terminal(cmd.Cmd):
                 else:
                     print("Cancelled.")
             else:
-                print(Fore.GREEN + "Already up to date." + Style.RESET_ALL)
+                print(Fore.GREEN + "Already up to date: " + self.current_version + Style.RESET_ALL)
 
         except requests.exceptions.RequestException as e:
             print(Fore.RED + f"Error during update: {str(e)}" + Style.RESET_ALL)
