@@ -157,17 +157,18 @@ class Terminal(cmd.Cmd):
         """Download the latest terminal.py from GitHub and replace the current script."""
         print(Fore.YELLOW + "Gathering Data..." + Style.RESET_ALL)
         try:
-            # Get the latest commit name from GitHub
-            commit_url = "https://api.github.com/repos/SethJ152/PyTerminal/commits/main"
-            commit_response = requests.get(commit_url)
             
-            if commit_response.status_code == 200:
-                commit_data = commit_response.json()
-                latest_commit_name = commit_data['commit']['message']
-                print(Fore.CYAN + f"Fetching Version: {latest_commit_name}" + Style.RESET_ALL)
-            else:
-                print(Fore.RED + "Error: Unable to fetch the latest commit from GitHub." + Style.RESET_ALL)
             if not self.current_version == latest_commit_name:
+                # Get the latest commit name from GitHub
+                commit_url = "https://api.github.com/repos/SethJ152/PyTerminal/commits/main"
+                commit_response = requests.get(commit_url)
+            
+                if commit_response.status_code == 200:
+                    commit_data = commit_response.json()
+                    latest_commit_name = commit_data['commit']['message']
+                    print(Fore.CYAN + f"Fetching Version: {latest_commit_name}" + Style.RESET_ALL)
+                else:
+                    print(Fore.RED + "Error: Unable to fetch the latest commit from GitHub." + Style.RESET_ALL)
                 print(f"Upgrading from {self.current_version} to {latest_commit_name}...")
                 pr = str(input("Are you sure? (y/n): "))
                 if pr.lower() == "y":
