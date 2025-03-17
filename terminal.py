@@ -31,7 +31,7 @@ class Terminal(cmd.Cmd):
     prompt = Fore.YELLOW + os.getlogin().lower() + "@" + platform.node().lower() + "~> " + Style.RESET_ALL
     history_file = os.path.join(os.path.expanduser("~"), ".py_terminal_history")
     GITHUB_URL = "https://raw.githubusercontent.com/SethJ152/PyTerminal/main/terminal.py"  # GitHub URL of the terminal.py file
-    current_version = "1.6.0"
+    current_version = "1.6.1"
     def do_version(self, _):
         
         """Download the latest terminal.py from GitHub and replace the current script."""
@@ -265,7 +265,7 @@ class Terminal(cmd.Cmd):
         """Show the current date and time."""
         print(Fore.YELLOW + time.strftime("%Y-%m-%d %H:%M:%S") + Style.RESET_ALL)
 
-    def do_commandhistory(self, _):
+    def do_history(self, _):
         """Show command history."""
         history_length = readline.get_current_history_length()
         if history_length == 0:
