@@ -1,16 +1,13 @@
-import cmd
+
 import os
 import subprocess
-
+required_dependencies = ['cmd', 'time', 'platform', 'sys', 'shutil', 'requests', 'readline', 'colorama']
 def install_dependencies():
-    required_dependencies = ['colorama', 'requests', 'readline']
-
     # Check and install missing dependencies
     for dep in required_dependencies:
         try:
             # Try importing the module to see if it's installed
             __import__(dep)
-            print(f"{dep} is already installed.")
         except ImportError:
             # If not installed, install the package using pip
             print(f"{dep} not found. Installing...")
@@ -18,7 +15,7 @@ def install_dependencies():
 
 # Install dependencies before running the main script
 install_dependencies()
-
+import cmd
 import time
 import platform
 import sys
@@ -27,20 +24,23 @@ import requests
 import readline
 from colorama import init, Fore, Style
 
-# Initialize colorama for colored text output
+# Initialize colorama for colored text output (ensure Windows compatibility)
 init(autoreset=True)
 
 class Terminal(cmd.Cmd):
-    intro = Fore.GREEN + "Welcome to Alpha:v2\nType 'help' to see available commands." + Style.RESET_ALL
-    prompt = Fore.YELLOW + os.getlogin() + "@alpha:v2 > " + Style.RESET_ALL
+    intro = Fore.GREEN + "Welcome to PyTerminal for " + platform.system() + "\nType 'help' to see available commands." + Style.RESET_ALL
+    prompt = Fore.YELLOW + os.getlogin().lower() + "@" + platform.node().lower() + "~> " + Style.RESET_ALL
     history_file = os.path.join(os.path.expanduser("~"), ".py_terminal_history")
     GITHUB_URL = "https://raw.githubusercontent.com/SethJ152/PyTerminal/main/terminal.py"  # GitHub URL of the terminal.py file
     current_version = "1.5.0 (A)"
     def do_version(self, _):
+        
         """Download the latest terminal.py from GitHub and replace the current script."""
         try:
+            # Get the latest commit name from GitHub
             commit_url = "https://api.github.com/repos/SethJ152/PyTerminal/commits/main"
             commit_response = requests.get(commit_url)
+            
             if commit_response.status_code == 200:
                 commit_data = commit_response.json()
                 latest_commit_name = commit_data['commit']['message']
@@ -48,9 +48,43 @@ class Terminal(cmd.Cmd):
                 print(Fore.CYAN + f"Current Version: {self.current_version}" + Style.RESET_ALL)
             else:
                 print(Fore.RED + "Error: Unable to fetch the latest commit from GitHub." + Style.RESET_ALL)
+
         except requests.exceptions.RequestException as e:
- 
             print(Fore.RED + f"Error fetching data: {str(e)}" + Style.RESET_ALL)
+    def do_ping(self, host):
+        """Ping a host: ping [hostname or IP]"""
+        if not host:
+            print(Fore.RED + "Error: Please specify a host to ping." + Style.RESET_ALL)
+            return
+        command = ["ping", "-c", "4", host] if os.name != "nt" else ["ping", "-n", "4", host]
+        self._execute_command(" ".join(command))
+    def do_whois(self, domain):
+        """Perform WHOIS lookup: whois [domain]"""
+        if not domain:
+            print(Fore.RED + "Error: Please specify a domain." + Style.RESET_ALL)
+            return
+        self._execute_command(f"whois {domain}")
+
+    def do_ip(self, _):
+        """Fetch public IP and location: iplookup"""
+        try:
+            response = requests.get("https://ipinfo.io/json").json()
+            ip = response.get("ip", "Unknown")
+            city = response.get("city", "Unknown")
+            region = response.get("region", "Unknown")
+            country = response.get("country", "Unknown")
+            print(Fore.YELLOW + f"Public IP: {ip}, Location: {city}, {region}, {country}" + Style.RESET_ALL)
+        except Exception as e:
+            print(Fore.RED + f"Error fetching IP details: {str(e)}" + Style.RESET_ALL)
+
+    def do_calculate(self, expression):
+        """Perform a simple calculation: calculate [expression]"""
+        try:
+            result = eval(expression)
+            print(Fore.GREEN + f"Result: {result}" + Style.RESET_ALL)
+        except Exception as e:
+            print(Fore.RED + f"Error: {str(e)}" + Style.RESET_ALL)
+
     def preloop(self):
         """Load command history if available."""
         if os.path.exists(self.history_file):
@@ -84,7 +118,7 @@ class Terminal(cmd.Cmd):
             subprocess.run("reboot", shell=True)
         else:
             subprocess.run("shutdown /r /f", shell=True)
-
+                
     def do_pause(self, time_to_sleep):
         """Pause execution for a given number of seconds."""
         try:
@@ -122,28 +156,45 @@ class Terminal(cmd.Cmd):
 
     def do_update(self, _):
         """Download the latest terminal.py from GitHub and replace the current script."""
-        print(Fore.YELLOW + "Updating terminal... Fetching the latest code..." + Style.RESET_ALL)
+        print(Fore.YELLOW + "Gathering Data..." + Style.RESET_ALL)
         try:
-            # Download the terminal.py file from GitHub
-            response = requests.get(self.GITHUB_URL)
-            if response.status_code == 200:
-                # Write the new code to terminal.py
-                script_path = os.path.abspath(__file__)  # Get the full path of the current script
-                with open(script_path, "w") as f:
-                    f.write(response.text)
-                print(Fore.GREEN + "Terminal updated successfully!" + Style.RESET_ALL)
-
-                # Restart the terminal program with the updated code
-                python = sys.executable  # Get the Python executable path
-                if platform.system() == "Windows":
-                    # Windows-specific restart method using subprocess to avoid terminal closing issues
-                    subprocess.Popen([python, script_path])
-                else:
-                    # For Unix-like systems (Linux/macOS), using os.execl to restart
-                    os.execl(python, python, *sys.argv)
-
+            # Get the latest commit name from GitHub
+            commit_url = "https://api.github.com/repos/SethJ152/PyTerminal/commits/main"
+            commit_response = requests.get(commit_url)
+            
+            if commit_response.status_code == 200:
+                commit_data = commit_response.json()
+                latest_commit_name = commit_data['commit']['message']
+                print(Fore.CYAN + f"Fetching Version: {latest_commit_name}" + Style.RESET_ALL)
             else:
-                print(Fore.RED + "Error: Unable to fetch the terminal code from GitHub." + Style.RESET_ALL)
+                print(Fore.RED + "Error: Unable to fetch the latest commit from GitHub." + Style.RESET_ALL)
+            print(f"Upgrading from {self.current_version} to {latest_commit_name}...")
+            pr = str(input("Are you sure? (y/n): "))
+            if pr.lower() == "y":
+                # Download the terminal.py file from GitHub
+                script_url = self.GITHUB_URL
+                response = requests.get(script_url)
+                if response.status_code == 200:
+                    # Write the new code to terminal.py
+                    script_path = os.path.abspath(__file__)  # Get the full path of the current script
+                    with open(script_path, "w") as f:
+                        f.write(response.text)
+                    print(Fore.GREEN + "Terminal updated successfully!" + Style.RESET_ALL)
+
+                    # Restart the terminal program with the updated code
+                    python = sys.executable  # Get the Python executable path
+                    if platform.system() == "Windows":
+                        # Windows-specific restart method using subprocess to avoid terminal closing issues
+                        subprocess.Popen([python, script_path])
+                    else:
+                        # For Unix-like systems (Linux/macOS), using os.execl to restart
+                        os.execl(python, python, *sys.argv)
+
+                else:
+                    print(Fore.RED + "Error: Unable to fetch the terminal code from GitHub." + Style.RESET_ALL)
+            else:
+                print(Fore.RED + "Cancelled." + Style.RESET_ALL)
+
         except requests.exceptions.RequestException as e:
             print(Fore.RED + f"Error during update: {str(e)}" + Style.RESET_ALL)
 
@@ -201,7 +252,9 @@ class Terminal(cmd.Cmd):
 
     def do_systeminfo(self, _):
         """Show system information."""
-        print(Fore.GREEN + str(platform.uname()) + Style.RESET_ALL)
+        print("Hostname: " + platform.node())
+        print("User:     " + os.getlogin())
+        print("OS:       " + platform.system())
 
     def do_currentuser(self, _):
         """Display the current user."""
@@ -226,11 +279,32 @@ class Terminal(cmd.Cmd):
             cmd.Cmd.do_help(self, command)
         else:
             self.print_help()
+    def do_server(self, _):
+        """Run server-related commands if the user is seth and hostname is alpha on Linux Mint."""
+        if os.getlogin().lower() == "seth" and platform.node().lower() == "alpha" and platform.system().lower() == "linux":
+            try:
+                print(Fore.GREEN + "Running cloudflared tunnel and starting Server.py..." + Style.RESET_ALL)
+                
+                # Start cloudflared tunnel in the background
+                cloudflared_process = subprocess.Popen(["cloudflared", "tunnel", "run", "sdjdrive"])
+                
+                # Start Server.py in the background
+                server_process = subprocess.Popen(["python3", "/home/seth/Desktop/Server.py"])
+                
+                # Optionally, wait for the processes to end (if you want to handle it further)
+                cloudflared_process.wait()
+                server_process.wait()
+                
+            except Exception as e:
+                print(Fore.RED + f"Error: {str(e)}" + Style.RESET_ALL)
+        else:
+            print(Fore.RED + "Error: This command can only be run by 'seth' on the 'alpha' machine in Linux Mint." + Style.RESET_ALL)
 
     def print_help(self):
         """Display available commands and descriptions."""
         commands = [
             ("update", "Updates the terminal code"),
+            ("version", "Shows the current and latest version"),
             ("exit", "Exit the terminal"),
             ("hostname", "Display the system hostname"),
             ("shutdown", "Shutdown the system"),
@@ -256,6 +330,9 @@ class Terminal(cmd.Cmd):
             ("currentuser", "Display current user"),
             ("currenttime", "Display the current date and time"),
             ("commandhistory", "Display command history"),
+            ("ip", "Shows the ip and location of the user"),
+            ("ping", "Pings a server"),
+            ("whosi", "Domain lookup"),
             ("help", "List available commands"),
         ]
         print(Fore.CYAN + "Available commands:" + Style.RESET_ALL)
@@ -306,6 +383,9 @@ class Terminal(cmd.Cmd):
         except Exception as e:
             print(Fore.RED + f"Error: {e}" + Style.RESET_ALL)
 
-if __name__ == '__main__':
-    os.system("cls" if os.name == "nt" else "clear")
-    Terminal().cmdloop()
+while True:
+    try:
+        if __name__ == '__main__':
+            Terminal().cmdloop()
+    except:
+        print("A major error occured and we are restarting the system...")
