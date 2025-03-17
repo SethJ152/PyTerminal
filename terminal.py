@@ -1,4 +1,3 @@
-
 import os
 import subprocess
 required_dependencies = ['cmd', 'time', 'platform', 'sys', 'shutil', 'requests', 'readline', 'colorama']
@@ -32,7 +31,7 @@ class Terminal(cmd.Cmd):
     prompt = Fore.YELLOW + os.getlogin().lower() + "@" + platform.node().lower() + "~> " + Style.RESET_ALL
     history_file = os.path.join(os.path.expanduser("~"), ".py_terminal_history")
     GITHUB_URL = "https://raw.githubusercontent.com/SethJ152/PyTerminal/main/terminal.py"  # GitHub URL of the terminal.py file
-    current_version = "1.5.0 (A)"
+    current_version = "1.5.5"
     def do_version(self, _):
         
         """Download the latest terminal.py from GitHub and replace the current script."""
@@ -168,32 +167,35 @@ class Terminal(cmd.Cmd):
                 print(Fore.CYAN + f"Fetching Version: {latest_commit_name}" + Style.RESET_ALL)
             else:
                 print(Fore.RED + "Error: Unable to fetch the latest commit from GitHub." + Style.RESET_ALL)
-            print(f"Upgrading from {self.current_version} to {latest_commit_name}...")
-            pr = str(input("Are you sure? (y/n): "))
-            if pr.lower() == "y":
-                # Download the terminal.py file from GitHub
-                script_url = self.GITHUB_URL
-                response = requests.get(script_url)
-                if response.status_code == 200:
-                    # Write the new code to terminal.py
-                    script_path = os.path.abspath(__file__)  # Get the full path of the current script
-                    with open(script_path, "w") as f:
-                        f.write(response.text)
-                    print(Fore.GREEN + "Terminal updated successfully!" + Style.RESET_ALL)
+            if not self.current_version == latest_commit_name:
+                print(f"Upgrading from {self.current_version} to {latest_commit_name}...")
+                pr = str(input("Are you sure? (y/n): "))
+                if pr.lower() == "y":
+                    # Download the terminal.py file from GitHub
+                    script_url = self.GITHUB_URL
+                    response = requests.get(script_url)
+                    if response.status_code == 200:
+                        # Write the new code to terminal.py
+                        script_path = os.path.abspath(__file__)  # Get the full path of the current script
+                        with open(script_path, "w") as f:
+                            f.write(response.text)
+                        print(Fore.GREEN + "Terminal updated successfully!" + Style.RESET_ALL)
 
-                    # Restart the terminal program with the updated code
-                    python = sys.executable  # Get the Python executable path
-                    if platform.system() == "Windows":
-                        # Windows-specific restart method using subprocess to avoid terminal closing issues
-                        subprocess.Popen([python, script_path])
+                        # Restart the terminal program with the updated code
+                        python = sys.executable  # Get the Python executable path
+                        if platform.system() == "Windows":
+                            # Windows-specific restart method using subprocess to avoid terminal closing issues
+                            subprocess.Popen([python, script_path])
+                        else:
+                            # For Unix-like systems (Linux/macOS), using os.execl to restart
+                            os.execl(python, python, *sys.argv)
+
                     else:
-                        # For Unix-like systems (Linux/macOS), using os.execl to restart
-                        os.execl(python, python, *sys.argv)
-
+                        print(Fore.RED + "Error: Unable to fetch the terminal code from GitHub." + Style.RESET_ALL)
                 else:
-                    print(Fore.RED + "Error: Unable to fetch the terminal code from GitHub." + Style.RESET_ALL)
+                    print("Cancelled.")
             else:
-                print(Fore.RED + "Cancelled." + Style.RESET_ALL)
+                print(Fore.GREEN + "Already up to date." + Style.RESET_ALL)
 
         except requests.exceptions.RequestException as e:
             print(Fore.RED + f"Error during update: {str(e)}" + Style.RESET_ALL)
@@ -387,5 +389,5 @@ while True:
     try:
         if __name__ == '__main__':
             Terminal().cmdloop()
-    except:
-        print("A major error occured and we are restarting the system...")
+    except Exception as e:
+        print(f"A major error occured and we are restarting the system... {e}")
