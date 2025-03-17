@@ -27,11 +27,10 @@ from colorama import init, Fore, Style
 init(autoreset=True)
 
 class Terminal(cmd.Cmd):
-    intro = Fore.GREEN + "Welcome to PyTerminal for " + platform.system() + "\nType 'help' to see available commands." + Style.RESET_ALL
-    prompt = Fore.YELLOW + os.getlogin().lower() + "@" + platform.node().lower() + "~> " + Style.RESET_ALL
+    prompt = Fore.YELLOW + os.getlogin().lower() + "@" + platform.node().lower() + ":~$ " + Style.RESET_ALL
     history_file = os.path.join(os.path.expanduser("~"), ".py_terminal_history")
     GITHUB_URL = "https://raw.githubusercontent.com/SethJ152/PyTerminal/main/terminal.py"  # GitHub URL of the terminal.py file
-    current_version = "1.6.2"
+    current_version = "1.6.3"
     def do_version(self, _):
         
         """Download the latest terminal.py from GitHub and replace the current script."""
@@ -93,8 +92,14 @@ class Terminal(cmd.Cmd):
         """Save command history."""
         readline.write_history_file(self.history_file)
 
-    def do_exit(self, _):
-        """Exit the terminal."""
+    def do_reload(self, _):
+        python = sys.executable  # Get the Python executable path
+        if platform.system() == "Windows":
+            # Windows-specific restart method using subprocess to avoid terminal closing issues
+            subprocess.Popen([python, script_path])
+        else:
+            # For Unix-like systems (Linux/macOS), using os.execl to restart
+            os.execl(python, python, *sys.argv)
         print(Fore.RED + "Goodbye!" + Style.RESET_ALL)
         return True
 
@@ -306,7 +311,7 @@ class Terminal(cmd.Cmd):
         commands = [
             ("update", "Updates the terminal code"),
             ("version", "Shows the current and latest version"),
-            ("exit", "Exit the terminal"),
+            ("reload", "Restart the terminal"),
             ("hostname", "Display the system hostname"),
             ("shutdown", "Shutdown the system"),
             ("reboot", "Reboot the system"),
@@ -390,4 +395,4 @@ while True:
             os.system("cls" if os.name == "nt" else "clear")
             Terminal().cmdloop()
     except Exception as e:
-        print(f"A major error occured and we are restarting the system... {e}")
+        print(f"Issue: {e}")
