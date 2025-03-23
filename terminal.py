@@ -1,456 +1,467 @@
-import os
+import tkinter as tk
+from tkinter import scrolledtext
 import subprocess
-required_dependencies = ['cmd', 'time', 'platform', 'sys', 'shutil', 'requests', 'readline', 'colorama']
-def install_dependencies():
-    # Check and install missing dependencies
-    for dep in required_dependencies:
-        try:
-            # Try importing the module to see if it's installed
-            __import__(dep)
-        except ImportError:
-            # If not installed, install the package using pip
-            print(f"{dep} not found. Installing...")
-            subprocess.check_call([sys.executable, "-m", "pip", "install", dep])
-import cmd
-import time
-import platform
+import os
 import sys
-import shutil
+import platform
 import requests
-import readline
-from colorama import init, Fore, Style
-# Install dependencies before running the main script
-install_dependencies()
+import time
 
+# If needed, run 'pip install requests' to ensure the whois/ip commands work.
+# This GUI aims to replicate the Linux Mint dark theme and incorporate most of the custom commands from the script.
 
-# Initialize colorama for colored text output (ensure Windows compatibility)
-init(autoreset=True)
+class MintTerminalGUI:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("PyTerminal v2")
+        # Dark background reminiscent of Linux Mint
+        self.bg_color = "#1B1D1E"  # Adjust as desired for a deeper dark theme
+        self.fg_color = "#FFFFFF"  # Foreground text color
+        self.prompt_color = "#87FF87"  # A green color for the prompt to mimic Mint
+        self.root.configure(bg=self.bg_color)
+        self.root.geometry("900x600")
+        self.GITHUB_URL = "https://raw.githubusercontent.com/SethJ152/PyTerminal/main/terminal.py"
+        self.current_version = "2.0.0"
 
-class Terminal(cmd.Cmd):
-    try:
-        user = os.getlogin().lower()
-    except:
-        user = "user"
-    try:
-        hostname = platform.node().lower()
-    except:
-        hostname = "host"
-
-    prompt = Fore.YELLOW + user + "@" + hostname + ":~$ " + Style.RESET_ALL
-    history_file = os.path.join(os.path.expanduser("~"), ".py_terminal_history")
-    GITHUB_URL = "https://raw.githubusercontent.com/SethJ152/PyTerminal/main/terminal.py"  # GitHub URL of the terminal.py file
-    current_version = "1.7.5"
-    def do_source(self, _):
-        print(self.GITHUB_URL)
-        if "/SethJ152/PyTerminal/main/" in self.GITHUB_URL:
-            print(Fore.GREEN + "This source is verified" + Style.RESET_ALL)
-        else:
-            print(Fore.RED + "THIS IS UNVERIFIED! DO NOT UPDATE!" + Style.RESET_ALL)
-    def do_devtools(self, _):
-        if "SethJ152/PyTerminal/main/" in self.GITHUB_URL:
-            print(Fore.GREEN + "This source is verified" + Style.RESET_ALL)
-        else:
-            print(Fore.RED + "THIS IS AN UNVERIFIED UPDATE URL! DO NOT UPDATE!" + Style.RESET_ALL)
+        # System info
         try:
-            # Get the latest commit name from GitHub
+            self.user = os.getlogin()
+        except:
+            self.user = "user"
+        try:
+            self.hostname = platform.node()
+        except:
+            self.hostname = "host"
+        self.cwd = os.path.expanduser("~")
+
+        # Create the scrolled text widget
+        self.terminal_output = scrolledtext.ScrolledText(
+            self.root,
+            bg=self.bg_color,
+            fg=self.fg_color,
+            insertbackground=self.fg_color,
+            font=("Monospace", 11),
+            relief="flat",
+            borderwidth=0,
+            wrap=tk.WORD
+        )
+        self.terminal_output.pack(fill=tk.BOTH, expand=True)
+        self.terminal_output.config(state=tk.NORMAL)
+        # Prevent user from editing output directly
+        self.terminal_output.bind("<Key>", lambda e: "break")
+
+        # Create the command entry
+        self.command_entry = tk.Entry(
+            self.root,
+            bg=self.bg_color,
+            fg=self.fg_color,
+            insertbackground=self.fg_color,
+            font=("Monospace", 11),
+            relief="flat",
+            borderwidth=0
+        )
+        self.command_entry.pack(fill=tk.X)
+        self.command_entry.bind("<Return>", self.handle_enter)
+        self.command_entry.focus()
+
+        # Display initial prompt
+        self.show_prompt()
+
+    def show_prompt(self):
+        # Create a Linux Mint-like prompt
+        prompt_str = f"{self.user}@{self.hostname}:~$ "
+        # Insert the prompt in green-like color
+        self.terminal_output.insert(tk.END, prompt_str)
+        self.terminal_output.see(tk.END)
+
+    def handle_enter(self, event):
+        # Grab the entered command
+        command = self.command_entry.get().strip()
+        # Echo the command to the output
+        self.terminal_output.insert(tk.END, command + "\n")
+        self.terminal_output.see(tk.END)
+        # Clear the entry widget
+        self.command_entry.delete(0, tk.END)
+        # Process the command
+        self.process_command(command)
+        # Show new prompt
+        self.show_prompt()
+
+    def process_command(self, command):
+        if not command:
+            return
+        # Parse command and args
+        parts = command.split()
+        cmd = parts[0].lower()
+        args = parts[1:] if len(parts) > 1 else []
+
+        # Check custom commands
+        if cmd == "exit":
+            self.root.destroy()
+        elif cmd == "clear":
+            self.terminal_output.delete(1.0, tk.END)
+        elif cmd == "cd":
+            self.change_directory(args)
+        elif cmd == "ping":
+            self.cmd_ping(args)
+        elif cmd == "whois":
+            self.cmd_whois(args)
+        elif cmd == "ip":
+            self.cmd_ip()
+        elif cmd == "calculate":
+            self.cmd_calculate(args)
+        elif cmd == "shutdown":
+            self.cmd_shutdown()
+        elif cmd == "reboot":
+            self.cmd_reboot()
+        elif cmd == "pause":
+            self.cmd_pause(args)
+        elif cmd == "diskspace":
+            self.cmd_diskspace()
+        elif cmd == "uptime":
+            self.cmd_uptime()
+        elif cmd == "processes":
+            self.cmd_processes()
+        elif cmd == "list":
+            self.cmd_list(args)
+        elif cmd == "changedir":
+            self.change_directory(args)
+        elif cmd == "currentdir":
+            self.cmd_currentdir()
+        elif cmd == "showfile":
+            self.cmd_showfile(args)
+        elif cmd == "print":
+            self.cmd_print(args)
+        elif cmd == "run":
+            self.cmd_run(args)
+        elif cmd == "makedir":
+            self.cmd_makedir(args)
+        elif cmd == "removefile":
+            self.cmd_removefile(args)
+        elif cmd == "removedir":
+            self.cmd_removedir(args)
+        elif cmd == "copy":
+            self.cmd_copy(args)
+        elif cmd == "move":
+            self.cmd_move(args)
+        elif cmd == "clearscreen":
+            self.terminal_output.delete(1.0, tk.END)
+        elif cmd == "systeminfo":
+            self.cmd_systeminfo()
+        elif cmd == "currentuser":
+            self.cmd_currentuser()
+        elif cmd == "currenttime":
+            self.cmd_currenttime()
+        elif cmd == "history":
+            self.cmd_history()
+        elif cmd == "help":
+            self.cmd_help()
+        elif cmd == "update":
+            """Download the latest terminal.py from GitHub and replace the current script."""
             commit_url = "https://api.github.com/repos/SethJ152/PyTerminal/commits/main"
             commit_response = requests.get(commit_url)
-            
+            # Get the latest commit name from GitHub
             if commit_response.status_code == 200:
                 commit_data = commit_response.json()
                 latest_commit_name = commit_data['commit']['message']
-                print(Fore.CYAN + f"Current Version: {self.current_version}" + Style.RESET_ALL)
-            else:
-                print(Fore.RED + "Error: Unable to fetch the latest commit from GitHub." + Style.RESET_ALL)
-
-        except requests.exceptions.RequestException as e:
-            print(Fore.RED + f"Error fetching data: {str(e)}" + Style.RESET_ALL)
-        try:
-            response = requests.get("https://ipinfo.io/json").json()
-            ip = response.get("ip", "Unknown")
-            city = response.get("city", "Unknown")
-            region = response.get("region", "Unknown")
-            country = response.get("country", "Unknown")
-            print(Fore.YELLOW + f"IP: {ip}, {city}, {region}, {country}" + Style.RESET_ALL)
-        except Exception as e:
-            print(Fore.RED + f"Error fetching IP details: {str(e)}" + Style.RESET_ALL)
-        print(Fore.GREEN + "User: " + self.user)
-        print(Fore.BLUE + "Hostname: " + self.hostname + Style.RESET_ALL)
-    def do_version(self, _):
-        print(Fore.CYAN + f"Current Version: {self.current_version}" + Style.RESET_ALL)
-        """Download the latest terminal.py from GitHub and replace the current script."""
-        try:
-            # Get the latest commit name from GitHub
-            commit_url = "https://api.github.com/repos/SethJ152/PyTerminal/commits/main"
-            commit_response = requests.get(commit_url)
             
-            if commit_response.status_code == 200:
-                commit_data = commit_response.json()
-                latest_commit_name = commit_data['commit']['message']
-                print(Fore.CYAN + f"Latest Version: {latest_commit_name}" + Style.RESET_ALL)
+            try:
                 if not self.current_version == latest_commit_name:
-                    print(Fore.RED + f"Please update!" + Style.RESET_ALL)
-                
-            else:
-                print(Fore.RED + "Error: Unable to fetch the latest commit from GitHub." + Style.RESET_ALL)
+                    pr = "y"
+                    if pr.lower() == "y":
+                        # Download the terminal.py file from GitHub
+                        script_url = self.GITHUB_URL
+                        response = requests.get(script_url)
+                        if response.status_code == 200:
+                            # Write the new code to terminal.py
+                            script_path = os.path.abspath(__file__)  # Get the full path of the current script
+                            with open(script_path, "w") as f:
+                                f.write(response.text)
 
-        except requests.exceptions.RequestException as e:
-            print(Fore.RED + f"Error fetching data: {str(e)}" + Style.RESET_ALL)
-    def do_ping(self, host):
-        """Ping a host: ping [hostname or IP]"""
-        if not host:
-            print(Fore.RED + "Error: Please specify a host to ping." + Style.RESET_ALL)
-            return
-        command = ["ping", "-c", "4", host] if os.name != "nt" else ["ping", "-n", "4", host]
-        self._execute_command(" ".join(command))
-    def do_whois(self, domain):
-        """Perform WHOIS lookup: whois [domain]"""
-        if not domain:
-            print(Fore.RED + "Error: Please specify a domain." + Style.RESET_ALL)
-            return
-        self._execute_command(f"whois {domain}")
+                            # Restart the terminal program with the updated code
+                            python = sys.executable  # Get the Python executable path
+                            if platform.system() == "Windows":
+                                # Windows-specific restart method using subprocess to avoid terminal closing issues
+                                subprocess.Popen([python, script_path])
+                            else:
+                                # For Unix-like systems (Linux/macOS), using os.execl to restart
+                                os.execl(python, python, *sys.argv)
+            
 
-    def do_ip(self, _):
-        """Fetch public IP and location: iplookup"""
+            except requests.exceptions.RequestException as e:
+                pass
+        else:
+            # If it's not a recognized custom command, try to run it as a shell command.
+            self.run_system_command(command)
+
+    ########################################################################
+    # Below are the command implementations replicating the old code.
+    ########################################################################
+    def change_directory(self, args):
+        if not args:
+            self.print_output("Error: Please specify a path.")
+            return
+        path = args[0]
+        try:
+            os.chdir(path)
+            self.cwd = os.getcwd()
+        except Exception as e:
+            self.print_output(f"Error: {str(e)}")
+
+    def cmd_ping(self, args):
+        if not args:
+            self.print_output("Error: Please specify a host to ping.")
+            return
+        host = args[0]
+        # On Windows: ping -n 4, on *nix: ping -c 4
+        cmd = ["ping", "-n" if os.name == "nt" else "-c", "4", host]
+        self.run_system_command(" ".join(cmd))
+
+    def cmd_whois(self, args):
+        if not args:
+            self.print_output("Error: Please specify a domain.")
+            return
+        domain = args[0]
+        self.run_system_command(f"whois {domain}")
+
+    def cmd_ip(self):
         try:
             response = requests.get("https://ipinfo.io/json").json()
             ip = response.get("ip", "Unknown")
             city = response.get("city", "Unknown")
             region = response.get("region", "Unknown")
             country = response.get("country", "Unknown")
-            print(Fore.YELLOW + f"Public IP: {ip}, Location: {city}, {region}, {country}" + Style.RESET_ALL)
+            self.print_output(f"Public IP: {ip}, Location: {city}, {region}, {country}")
         except Exception as e:
-            print(Fore.RED + f"Error fetching IP details: {str(e)}" + Style.RESET_ALL)
+            self.print_output(f"Error fetching IP details: {str(e)}")
 
-    def do_calculate(self, expression):
-        """Perform a simple calculation: calculate [expression]"""
+    def cmd_calculate(self, args):
+        if not args:
+            self.print_output("Error: No expression provided.")
+            return
+        expression = " ".join(args)
         try:
             result = eval(expression)
-            print(Fore.GREEN + f"Result: {result}" + Style.RESET_ALL)
+            self.print_output(f"Result: {result}")
         except Exception as e:
-            print(Fore.RED + f"Error: {str(e)}" + Style.RESET_ALL)
+            self.print_output(f"Error: {str(e)}")
 
-    def preloop(self):
-        """Load command history if available."""
-        if os.path.exists(self.history_file):
-            readline.read_history_file(self.history_file)
-
-    def postloop(self):
-        """Save command history."""
-        readline.write_history_file(self.history_file)
-
-    def do_reload(self, _):
-        python = sys.executable  # Get the Python executable path
-        if platform.system() == "Windows":
-            # Windows-specific restart method using subprocess to avoid terminal closing issues
-            subprocess.Popen([python, script_path])
-        else:
-            # For Unix-like systems (Linux/macOS), using os.execl to restart
-            os.execl(python, python, *sys.argv)
-        print(Fore.RED + "Goodbye!" + Style.RESET_ALL)
-        return True
-
-    def do_hostname(self, _):
-        """Display the system hostname."""
-        print(Fore.GREEN + self.hostname + Style.RESET_ALL)
-
-    def do_shutdown(self, _):
-        """Shutdown the system."""
-        print(Fore.RED + "Shutting down the system..." + Style.RESET_ALL)
+    def cmd_shutdown(self):
+        self.print_output("Shutting down the system...")
         if os.name == "nt":
             subprocess.run("shutdown /s /f", shell=True)
         else:
             subprocess.run("sudo shutdown now", shell=True)
 
-    def do_reboot(self, _):
-        """Reboot the system."""
-        print(Fore.YELLOW + "Rebooting the system..." + Style.RESET_ALL)
-        if os.name != "nt":
-            subprocess.run("reboot", shell=True)
-        else:
+    def cmd_reboot(self):
+        self.print_output("Rebooting the system...")
+        if os.name == "nt":
             subprocess.run("shutdown /r /f", shell=True)
-                
-    def do_pause(self, time_to_sleep):
-        """Pause execution for a given number of seconds."""
+        else:
+            subprocess.run("reboot", shell=True)
+
+    def cmd_pause(self, args):
+        if not args:
+            self.print_output("Error: Please specify the number of seconds to pause.")
+            return
         try:
-            time_to_sleep = int(time_to_sleep)
-            print(Fore.MAGENTA + f"Pausing for {time_to_sleep} seconds..." + Style.RESET_ALL)
-            time.sleep(time_to_sleep)
+            t = int(args[0])
+            self.print_output(f"Pausing for {t} seconds...")
+            time.sleep(t)
         except ValueError:
-            print(Fore.RED + "Error: Invalid time format. Please provide an integer value." + Style.RESET_ALL)
+            self.print_output("Error: Invalid time format.")
 
-    def do_diskspace(self, _):
-        """Display free disk space."""
+    def cmd_diskspace(self):
         if os.name == "nt":
-            subprocess.run("wmic logicaldisk get size,freespace,caption", shell=True)
+            self.run_system_command("wmic logicaldisk get size,freespace,caption")
         else:
-            subprocess.run("df -h", shell=True)
+            self.run_system_command("df -h")
 
-    def do_uptime(self, _):
-        """Display the system uptime."""
-        print(Fore.GREEN + subprocess.check_output("uptime", shell=True).decode() + Style.RESET_ALL)
-
-    def do_processes(self, _):
-        """Show the current running processes."""
+    def cmd_uptime(self):
         if os.name == "nt":
-            subprocess.run("tasklist", shell=True)
+            # Windows doesn't have 'uptime' by default, approximate with 'net stats srv'
+            self.run_system_command("net stats srv")
         else:
-            subprocess.run("ps aux", shell=True)
+            output = subprocess.getoutput("uptime")
+            self.print_output(output)
 
-    def do_clearhistory(self, _):
-        """Clear the terminal command history."""
+    def cmd_processes(self):
+        if os.name == "nt":
+            self.run_system_command("tasklist")
+        else:
+            self.run_system_command("ps aux")
+
+    def cmd_list(self, args):
+        path = args[0] if args else "."
         try:
-            readline.clear_history()
-            print(Fore.GREEN + "Command history cleared." + Style.RESET_ALL)
+            items = os.listdir(path)
+            for item in items:
+                self.print_output(item)
         except Exception as e:
-            print(Fore.RED + f"Error clearing history: {str(e)}" + Style.RESET_ALL)
+            self.print_output(f"Error: {str(e)}")
 
-    def do_update(self, _):
-        """Download the latest terminal.py from GitHub and replace the current script."""
-        print(Fore.YELLOW + "Gathering Data..." + Style.RESET_ALL)
-        commit_url = "https://api.github.com/repos/SethJ152/PyTerminal/commits/main"
-        commit_response = requests.get(commit_url)
-        # Get the latest commit name from GitHub
-        if commit_response.status_code == 200:
-            commit_data = commit_response.json()
-            latest_commit_name = commit_data['commit']['message']
-            
-        else:
-            print(Fore.RED + "Error: Unable to fetch the latest commit from GitHub." + Style.RESET_ALL)
-        try:
-            if not self.current_version == latest_commit_name:
-                print(Fore.CYAN + f"Updating to version: {latest_commit_name}" + Style.RESET_ALL)
-                pr = str(input("Are you sure? (y/n): "))
-                if pr.lower() == "y":
-                    # Download the terminal.py file from GitHub
-                    script_url = self.GITHUB_URL
-                    response = requests.get(script_url)
-                    if response.status_code == 200:
-                        # Write the new code to terminal.py
-                        script_path = os.path.abspath(__file__)  # Get the full path of the current script
-                        with open(script_path, "w") as f:
-                            f.write(response.text)
-                        print(Fore.GREEN + "Terminal updated successfully!" + Style.RESET_ALL)
+    def cmd_currentdir(self):
+        self.print_output(os.getcwd())
 
-                        # Restart the terminal program with the updated code
-                        python = sys.executable  # Get the Python executable path
-                        if platform.system() == "Windows":
-                            # Windows-specific restart method using subprocess to avoid terminal closing issues
-                            subprocess.Popen([python, script_path])
-                        else:
-                            # For Unix-like systems (Linux/macOS), using os.execl to restart
-                            os.execl(python, python, *sys.argv)
-
-                    else:
-                        print(Fore.RED + "Error: Unable to fetch the terminal code from GitHub." + Style.RESET_ALL)
-                else:
-                    print("Cancelled.")
-            else:
-                print(Fore.GREEN + "Already up to date: " + self.current_version + Style.RESET_ALL)
-
-        except requests.exceptions.RequestException as e:
-            print(Fore.RED + f"Error during update: {str(e)}" + Style.RESET_ALL)
-
-
-    # Other previously implemented commands...
-
-    def do_list(self, path="."):
-        """List directory contents: list [path]"""
-        self._handle_action(os.listdir, path, success_msg=f"Listed contents of {path}")
-
-    def do_changedir(self, path=None):
-        """Change current directory: changedir [path]"""
-        path = path or os.getcwd()
-        self._handle_action(os.chdir, path, success_msg=f"Changed to {path}")
-
-    def do_currentdir(self, _):
-        """Display current directory."""
-        print(Fore.CYAN + os.getcwd() + Style.RESET_ALL)
-
-    def do_showfile(self, filename):
-        """Display file contents: showfile [filename]"""
-        self._handle_action(self._print_file, filename)
-
-    def do_print(self, text):
-        """Print text: print [text]"""
-        print(Fore.MAGENTA + text + Style.RESET_ALL)
-
-    def do_run(self, command):
-        """Run a system command: run [command]"""
-        self._execute_command(command)
-
-    def do_makedir(self, path):
-        """Create a directory: makedir [directory]"""
-        self._handle_action(os.makedirs, path, success_msg=f"Directory '{path}' created.")
-
-    def do_removefile(self, filename):
-        """Delete a file: removefile [filename]"""
-        self._handle_action(os.remove, filename, success_msg=f"File '{filename}' removed.")
-
-    def do_removedir(self, path):
-        """Delete a directory: removedir [directory]"""
-        self._handle_action(shutil.rmtree, path, success_msg=f"Directory '{path}' removed.")
-
-    def do_copy(self, args):
-        """Copy files or directories: copy [source] [destination]"""
-        self._handle_file_operation(shutil.copy2, shutil.copytree, args)
-
-    def do_move(self, args):
-        """Move files or directories: move [source] [destination]"""
-        self._handle_file_operation(shutil.move, shutil.move, args)
-
-    def do_clearscreen(self, _):
-        """Clear the terminal screen."""
-        os.system("cls" if os.name == "nt" else "clear")
-
-    def do_systeminfo(self, _):
-        """Show system information."""
-        print("Hostname: " + self.hostname)
-        print("User:     " + self.user)
-        print("OS:       " + platform.system())
-
-    def do_currentuser(self, _):
-        """Display the current user."""
-        print(Fore.GREEN + self.user + Style.RESET_ALL)
-
-    def do_currenttime(self, _):
-        """Show the current date and time."""
-        print(Fore.YELLOW + time.strftime("%Y-%m-%d %H:%M:%S") + Style.RESET_ALL)
-
-    def do_history(self, _):
-        """Show command history."""
-        history_length = readline.get_current_history_length()
-        if history_length == 0:
-            print(Fore.RED + "No command history available." + Style.RESET_ALL)
-        else:
-            for i in range(1, history_length + 1):
-                print(Fore.WHITE + f"{i}: {readline.get_history_item(i)}" + Style.RESET_ALL)
-
-    def do_help(self, command=None):
-        """List available commands or show help for a specific command."""
-        if command:
-            cmd.Cmd.do_help(self, command)
-        else:
-            self.print_help()
-    def do_server(self, _):
-        """Run server-related commands silently if the user is seth and hostname is alpha on Linux Mint."""
-        if self.user == "seth" and self.hostname == "alpha" and platform.system().lower() == "linux":
-            try:
-                # Start cloudflared tunnel in the background with output suppressed
-                cloudflared_process = subprocess.Popen(
-                    ["cloudflared", "tunnel", "run", "sdjdrive"],
-                    stdout=subprocess.DEVNULL,
-                    stderr=subprocess.DEVNULL
-                )
-
-                # Start Server.py in the background with output suppressed
-                server_process = subprocess.Popen(
-                    ["python3", "/home/seth/Desktop/Server.py"],
-                    stdout=subprocess.DEVNULL,
-                    stderr=subprocess.DEVNULL
-                )
-                print("Server is running")
-            except:
-                print("Server Failed")
-        else:
-            print("Only admin are allowed to use this custom command")
-
-    def print_help(self):
-        """Display available commands and descriptions."""
-        commands = [
-            ("update", "Updates the terminal code"),
-            ("version", "Shows the current and latest version"),
-            ("reload", "Restart the terminal"),
-            ("devtools", "Data for modding"),
-            ("source", "Show if verified update is available"),
-            ("hostname", "Display the system hostname"),
-            ("shutdown", "Shutdown the system"),
-            ("reboot", "Reboot the system"),
-            ("pause [time]", "Pause execution for the specified time"),
-            ("diskspace", "Show free disk space"),
-            ("uptime", "Display system uptime"),
-            ("processes", "Show the current running processes"),
-            ("clearhistory", "Clear the terminal command history"),
-            ("list [path]", "List directory contents"),
-            ("changedir [path]", "Change directory"),
-            ("currentdir", "Print current working directory"),
-            ("showfile [file]", "Print file contents"),
-            ("print [text]", "Echo the input arguments"),
-            ("run [command]", "Execute a system command"),
-            ("makedir [directory]", "Create a new directory"),
-            ("removefile [file]", "Remove a file"),
-            ("removedir [directory]", "Remove a directory"),
-            ("copy [source] [destination]", "Copy a file or directory"),
-            ("move [source] [destination]", "Move or rename a file or directory"),
-            ("clearscreen", "Clear the terminal screen"),
-            ("systeminfo", "Display system information"),
-            ("currentuser", "Display current user"),
-            ("currenttime", "Display the current date and time"),
-            ("commandhistory", "Display command history"),
-            ("ip", "Shows the ip and location of the user"),
-            ("ping [domain]", "Pings a server"),
-            ("whois [domain]", "Domain lookup"),
-            ("help", "List available commands"),
-        ]
-        print(Fore.CYAN + "Available commands:" + Style.RESET_ALL)
-        for cmd, desc in commands:
-            print(Fore.YELLOW + f"  {cmd:<20} {desc}" + Style.RESET_ALL)
-
-    # Helper Methods
-    def _handle_action(self, func, target, success_msg=None):
-        """Handle actions with error handling for both files and directories."""
-        try:
-            func(target)
-            if success_msg:
-                print(Fore.GREEN + success_msg + Style.RESET_ALL)
-        except FileNotFoundError:
-            print(Fore.RED + f"Error: No such file or directory: '{target}'" + Style.RESET_ALL)
-        except PermissionError:
-            print(Fore.RED + f"Error: Permission denied: '{target}'" + Style.RESET_ALL)
-        except OSError as e:
-            print(Fore.RED + f"Error: {e}" + Style.RESET_ALL)
-
-    def _print_file(self, filename):
-        """Print file contents."""
+    def cmd_showfile(self, args):
+        if not args:
+            self.print_output("Error: Please specify a filename.")
+            return
+        filename = args[0]
         try:
             with open(filename, "r") as file:
-                print(Fore.WHITE + file.read() + Style.RESET_ALL)
+                contents = file.read()
+            self.print_output(contents)
         except FileNotFoundError:
-            print(Fore.RED + f"Error: No such file: '{filename}'" + Style.RESET_ALL)
-
-    def _execute_command(self, command):
-        """Execute a system command."""
-        try:
-            subprocess.run(command, shell=True, check=True)
-        except subprocess.CalledProcessError:
-            print(Fore.RED + f"Error: Command '{command}' failed" + Style.RESET_ALL)
-
-    def _handle_file_operation(self, copy_func, move_func, args):
-        """Helper method to handle copy and move operations."""
-        try:
-            source, destination = args.split()
-            if os.path.isdir(source):
-                move_func(source, destination)
-                print(Fore.GREEN + f"Directory moved from {source} to {destination}" + Style.RESET_ALL)
-            else:
-                copy_func(source, destination)
-                print(Fore.GREEN + f"File copied from {source} to {destination}" + Style.RESET_ALL)
-        except ValueError:
-            print(Fore.RED + "Error: Please provide both source and destination" + Style.RESET_ALL)
+            self.print_output(f"Error: No such file: {filename}")
         except Exception as e:
-            print(Fore.RED + f"Error: {e}" + Style.RESET_ALL)
-    def default(self, line):
-        """Handle all other commands."""
-        if line.strip() == "":
-            print(Fore.RED + "Error: Command cannot be empty." + Style.RESET_ALL)
-        else:
-            print(Fore.YELLOW + f"Unknown command: {line.strip()}. Type 'help' for a list of commands." + Style.RESET_ALL)
+            self.print_output(f"Error: {str(e)}")
+
+    def cmd_print(self, args):
+        text = " ".join(args)
+        self.print_output(text)
+
+    def cmd_run(self, args):
+        if not args:
+            self.print_output("Error: Please specify a command to run.")
+            return
+        cmd = " ".join(args)
+        self.run_system_command(cmd)
+
+    def cmd_makedir(self, args):
+        if not args:
+            self.print_output("Error: Please specify a directory name.")
+            return
+        path = args[0]
+        try:
+            os.makedirs(path)
+            self.print_output(f"Directory '{path}' created.")
+        except Exception as e:
+            self.print_output(f"Error: {str(e)}")
+
+    def cmd_removefile(self, args):
+        if not args:
+            self.print_output("Error: Please specify a filename.")
+            return
+        filename = args[0]
+        try:
+            os.remove(filename)
+            self.print_output(f"File '{filename}' removed.")
+        except Exception as e:
+            self.print_output(f"Error: {str(e)}")
+
+    def cmd_removedir(self, args):
+        import shutil
+        if not args:
+            self.print_output("Error: Please specify a directory.")
+            return
+        path = args[0]
+        try:
+            shutil.rmtree(path)
+            self.print_output(f"Directory '{path}' removed.")
+        except Exception as e:
+            self.print_output(f"Error: {str(e)}")
+
+    def cmd_copy(self, args):
+        import shutil
+        if len(args) < 2:
+            self.print_output("Error: Please specify [source] [destination].")
+            return
+        source, destination = args
+        try:
+            if os.path.isdir(source):
+                shutil.copytree(source, destination)
+                self.print_output(f"Directory '{source}' copied to '{destination}'.")
+            else:
+                shutil.copy2(source, destination)
+                self.print_output(f"File '{source}' copied to '{destination}'.")
+        except Exception as e:
+            self.print_output(f"Error: {str(e)}")
+
+    def cmd_move(self, args):
+        import shutil
+        if len(args) < 2:
+            self.print_output("Error: Please specify [source] [destination].")
+            return
+        source, destination = args
+        try:
+            shutil.move(source, destination)
+            self.print_output(f"'{source}' moved to '{destination}'.")
+        except Exception as e:
+            self.print_output(f"Error: {str(e)}")
+
+    def cmd_systeminfo(self):
+        self.print_output(f"Hostname: {self.hostname}")
+        self.print_output(f"User: {self.user}")
+        self.print_output(f"OS: {platform.system()}")
+
+    def cmd_currentuser(self):
+        self.print_output(self.user)
+
+    def cmd_currenttime(self):
+        now = time.strftime("%Y-%m-%d %H:%M:%S")
+        self.print_output(now)
+
+    def cmd_history(self):
+        # For this GUI version, we don't keep a persistent history; we can mimic by searching through the text.
+        self.print_output("Command history not implemented for GUI.")
+
+    def cmd_help(self):
+        msg = [
+            "Available commands:",
+            "  exit            - Close the terminal.",
+            "  clear           - Clear the screen.",
+            "  cd [path]       - Change directory.",
+            "  ping [host]     - Ping a host.",
+            "  whois [domain]  - WHOIS lookup.",
+            "  ip              - Fetch public IP info.",
+            "  calculate <expr>- Evaluate a math expression.",
+            "  shutdown        - Shutdown the system.",
+            "  reboot          - Reboot the system.",
+            "  pause <sec>     - Pause for <sec> seconds.",
+            "  diskspace       - Show free disk space.",
+            "  uptime          - Show system uptime.",
+            "  processes       - List running processes.",
+            "  list [path]     - List directory contents.",
+            "  changedir [p]   - Change directory.",
+            "  currentdir      - Show current directory.",
+            "  showfile [file] - Display file contents.",
+            "  print [text]    - Echo text.",
+            "  run [cmd]       - Run a system command.",
+            "  makedir [dir]   - Create a directory.",
+            "  removefile [f]  - Remove a file.",
+            "  removedir [dir] - Remove a directory.",
+            "  copy src dst    - Copy file/dir.",
+            "  move src dst    - Move file/dir.",
+            "  clearscreen     - Clear the screen.",
+            "  systeminfo      - Show system information.",
+            "  currentuser     - Display current user.",
+            "  currenttime     - Show date/time.",
+            "  history         - Show command history (not persistent).",
+            "  help            - Show this help.",
+        ]
+        self.print_output("\n".join(msg))
+
+    ########################################################################
+    # Utility methods
+    ########################################################################
+    def print_output(self, text):
+        self.terminal_output.insert(tk.END, text + "\n")
+        self.terminal_output.see(tk.END)
+
+    def run_system_command(self, command):
+        try:
+            # Use the shell under Linux or Windows
+            output = subprocess.check_output(command, stderr=subprocess.STDOUT, shell=True,
+                                             universal_newlines=True, cwd=self.cwd)
+            self.print_output(output)
+        except subprocess.CalledProcessError as e:
+            self.print_output(e.output)
+        except Exception as e:
+            self.print_output(str(e))
 
 
-while True:
-    try:
-        if __name__ == '__main__':
-            os.system("cls" if os.name == "nt" else "clear")
-            Terminal().cmdloop()
-    except Exception as e:
-        print(f"Issue: {e}")
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = MintTerminalGUI(root)
+    root.mainloop()
