@@ -39,7 +39,7 @@ class Terminal(cmd.Cmd):
     prompt = Fore.YELLOW + user + "@" + hostname + ":~$ " + Style.RESET_ALL
     history_file = os.path.join(os.path.expanduser("~"), ".py_terminal_history")
     GITHUB_URL = "https://raw.githubusercontent.com/SethJ152/PyTerminal/main/terminal.py"  # GitHub URL of the terminal.py file
-    current_version = "1.6.4"
+    current_version = "1.7.0 (UP1)"
     def do_source(self, _):
         print(self.GITHUB_URL)
         if "/SethJ152/PyTerminal/main/" in self.GITHUB_URL:
@@ -77,7 +77,7 @@ class Terminal(cmd.Cmd):
         print(Fore.GREEN + "User: " + self.user)
         print(Fore.BLUE + "Hostname: " + self.hostname + Style.RESET_ALL)
     def do_version(self, _):
-        
+        print(Fore.CYAN + f"Current Version: {self.current_version}" + Style.RESET_ALL)
         """Download the latest terminal.py from GitHub and replace the current script."""
         try:
             # Get the latest commit name from GitHub
@@ -88,7 +88,9 @@ class Terminal(cmd.Cmd):
                 commit_data = commit_response.json()
                 latest_commit_name = commit_data['commit']['message']
                 print(Fore.CYAN + f"Latest Version: {latest_commit_name}" + Style.RESET_ALL)
-                print(Fore.CYAN + f"Current Version: {self.current_version}" + Style.RESET_ALL)
+                if not self.current_version == latest_commit_name:
+                    print(Fore.RED + f"Please update!" + Style.RESET_ALL)
+                
             else:
                 print(Fore.RED + "Error: Unable to fetch the latest commit from GitHub." + Style.RESET_ALL)
 
