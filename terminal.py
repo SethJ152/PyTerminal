@@ -11,9 +11,6 @@ def install_dependencies():
             # If not installed, install the package using pip
             print(f"{dep} not found. Installing...")
             subprocess.check_call([sys.executable, "-m", "pip", "install", dep])
-
-# Install dependencies before running the main script
-install_dependencies()
 import cmd
 import time
 import platform
@@ -22,15 +19,63 @@ import shutil
 import requests
 import readline
 from colorama import init, Fore, Style
+# Install dependencies before running the main script
+install_dependencies()
+
 
 # Initialize colorama for colored text output (ensure Windows compatibility)
 init(autoreset=True)
 
 class Terminal(cmd.Cmd):
-    prompt = Fore.YELLOW + os.getlogin().lower() + "@" + platform.node().lower() + ":~$ " + Style.RESET_ALL
+    try:
+        user = os.getlogin().lower()
+    except:
+        user = "user"
+    try:
+        hostname = platform.node().lower()
+    except:
+        hostname = "host"
+
+    prompt = Fore.YELLOW + user + "@" + hostname + ":~$ " + Style.RESET_ALL
     history_file = os.path.join(os.path.expanduser("~"), ".py_terminal_history")
     GITHUB_URL = "https://raw.githubusercontent.com/SethJ152/PyTerminal/main/terminal.py"  # GitHub URL of the terminal.py file
-    current_version = "1.6.3"
+    current_version = "1.6.4"
+    def do_source(self, _):
+        print(self.GITHUB_URL)
+        if "/SethJ152/PyTerminal/main/" in self.GITHUB_URL:
+            print(Fore.GREEN + "This source is verified" + Style.RESET_ALL)
+        else:
+            print(Fore.RED + "THIS IS UNVERIFIED! DO NOT UPDATE!" + Style.RESET_ALL)
+    def do_devtools(self, _):
+        if "SethJ152/PyTerminal/main/" in self.GITHUB_URL:
+            print(Fore.GREEN + "This source is verified" + Style.RESET_ALL)
+        else:
+            print(Fore.RED + "THIS IS AN UNVERIFIED UPDATE URL! DO NOT UPDATE!" + Style.RESET_ALL)
+        try:
+            # Get the latest commit name from GitHub
+            commit_url = "https://api.github.com/repos/SethJ152/PyTerminal/commits/main"
+            commit_response = requests.get(commit_url)
+            
+            if commit_response.status_code == 200:
+                commit_data = commit_response.json()
+                latest_commit_name = commit_data['commit']['message']
+                print(Fore.CYAN + f"Current Version: {self.current_version}" + Style.RESET_ALL)
+            else:
+                print(Fore.RED + "Error: Unable to fetch the latest commit from GitHub." + Style.RESET_ALL)
+
+        except requests.exceptions.RequestException as e:
+            print(Fore.RED + f"Error fetching data: {str(e)}" + Style.RESET_ALL)
+        try:
+            response = requests.get("https://ipinfo.io/json").json()
+            ip = response.get("ip", "Unknown")
+            city = response.get("city", "Unknown")
+            region = response.get("region", "Unknown")
+            country = response.get("country", "Unknown")
+            print(Fore.YELLOW + f"IP: {ip}, {city}, {region}, {country}" + Style.RESET_ALL)
+        except Exception as e:
+            print(Fore.RED + f"Error fetching IP details: {str(e)}" + Style.RESET_ALL)
+        print(Fore.GREEN + "User: " + self.user)
+        print(Fore.BLUE + "Hostname: " + self.hostname + Style.RESET_ALL)
     def do_version(self, _):
         
         """Download the latest terminal.py from GitHub and replace the current script."""
@@ -105,7 +150,7 @@ class Terminal(cmd.Cmd):
 
     def do_hostname(self, _):
         """Display the system hostname."""
-        print(Fore.GREEN + platform.node() + Style.RESET_ALL)
+        print(Fore.GREEN + self.hostname + Style.RESET_ALL)
 
     def do_shutdown(self, _):
         """Shutdown the system."""
@@ -258,13 +303,13 @@ class Terminal(cmd.Cmd):
 
     def do_systeminfo(self, _):
         """Show system information."""
-        print("Hostname: " + platform.node())
-        print("User:     " + os.getlogin())
+        print("Hostname: " + self.hostname)
+        print("User:     " + self.user)
         print("OS:       " + platform.system())
 
     def do_currentuser(self, _):
         """Display the current user."""
-        print(Fore.GREEN + os.getlogin() + Style.RESET_ALL)
+        print(Fore.GREEN + self.user + Style.RESET_ALL)
 
     def do_currenttime(self, _):
         """Show the current date and time."""
@@ -287,7 +332,7 @@ class Terminal(cmd.Cmd):
             self.print_help()
     def do_server(self, _):
         """Run server-related commands if the user is seth and hostname is alpha on Linux Mint."""
-        if os.getlogin().lower() == "seth" and platform.node().lower() == "alpha" and platform.system().lower() == "linux":
+        if self.user == "seth" and self.hostname == "alpha" and platform.system().lower() == "linux":
             try:
                 print(Fore.GREEN + "Running cloudflared tunnel and starting Server.py..." + Style.RESET_ALL)
                 
@@ -312,6 +357,8 @@ class Terminal(cmd.Cmd):
             ("update", "Updates the terminal code"),
             ("version", "Shows the current and latest version"),
             ("reload", "Restart the terminal"),
+            ("devtools", "Data for modding"),
+            ("source", "Show if verified update is available"),
             ("hostname", "Display the system hostname"),
             ("shutdown", "Shutdown the system"),
             ("reboot", "Reboot the system"),
