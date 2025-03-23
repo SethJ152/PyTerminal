@@ -39,7 +39,7 @@ class Terminal(cmd.Cmd):
     prompt = Fore.YELLOW + user + "@" + hostname + ":~$ " + Style.RESET_ALL
     history_file = os.path.join(os.path.expanduser("~"), ".py_terminal_history")
     GITHUB_URL = "https://raw.githubusercontent.com/SethJ152/PyTerminal/main/terminal.py"  # GitHub URL of the terminal.py file
-    current_version = "1.7.0 (UP1)"
+    current_version = "1.7.5"
     def do_source(self, _):
         print(self.GITHUB_URL)
         if "/SethJ152/PyTerminal/main/" in self.GITHUB_URL:
@@ -333,25 +333,27 @@ class Terminal(cmd.Cmd):
         else:
             self.print_help()
     def do_server(self, _):
-        """Run server-related commands if the user is seth and hostname is alpha on Linux Mint."""
+        """Run server-related commands silently if the user is seth and hostname is alpha on Linux Mint."""
         if self.user == "seth" and self.hostname == "alpha" and platform.system().lower() == "linux":
             try:
-                print(Fore.GREEN + "Running cloudflared tunnel and starting Server.py..." + Style.RESET_ALL)
-                
-                # Start cloudflared tunnel in the background
-                cloudflared_process = subprocess.Popen(["cloudflared", "tunnel", "run", "sdjdrive"])
-                
-                # Start Server.py in the background
-                server_process = subprocess.Popen(["python3", "/home/seth/Desktop/Server.py"])
-                
-                # Optionally, wait for the processes to end (if you want to handle it further)
-                cloudflared_process.wait()
-                server_process.wait()
-                
-            except Exception as e:
-                print(Fore.RED + f"Error: {str(e)}" + Style.RESET_ALL)
+                # Start cloudflared tunnel in the background with output suppressed
+                cloudflared_process = subprocess.Popen(
+                    ["cloudflared", "tunnel", "run", "sdjdrive"],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL
+                )
+
+                # Start Server.py in the background with output suppressed
+                server_process = subprocess.Popen(
+                    ["python3", "/home/seth/Desktop/Server.py"],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL
+                )
+                print("Server is running")
+            except:
+                print("Server Failed")
         else:
-            print(Fore.RED + "Error: This command can only be run by 'seth' on the 'alpha' machine in Linux Mint." + Style.RESET_ALL)
+            print("Only admin are allowed to use this custom command")
 
     def print_help(self):
         """Display available commands and descriptions."""
@@ -437,6 +439,13 @@ class Terminal(cmd.Cmd):
             print(Fore.RED + "Error: Please provide both source and destination" + Style.RESET_ALL)
         except Exception as e:
             print(Fore.RED + f"Error: {e}" + Style.RESET_ALL)
+    def default(self, line):
+        """Handle all other commands."""
+        if line.strip() == "":
+            print(Fore.RED + "Error: Command cannot be empty." + Style.RESET_ALL)
+        else:
+            print(Fore.YELLOW + f"Unknown command: {line.strip()}. Type 'help' for a list of commands." + Style.RESET_ALL)
+
 
 while True:
     try:
