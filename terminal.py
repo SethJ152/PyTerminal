@@ -38,8 +38,8 @@ class Terminal(cmd.Cmd):
 
     prompt = Fore.YELLOW + user + "@" + hostname + ":~$ " + Style.RESET_ALL
     history_file = os.path.join(os.path.expanduser("~"), ".py_terminal_history")
-    GITHUB_URL = "https://raw.githubusercontent.com/SethJ152/PyTerminal/main/terminal.py"  # GitHub URL of the terminal.py file
-    current_version = "1.7.5"
+    GITHUB_URL = "https://raw.githubusercontent.com/SethJ152/PyTerminal/WithoutGUI/terminal.py"  # GitHub URL of the terminal.py file
+    current_version = "1.7.5 Without GUI"
     def do_source(self, _):
         print(self.GITHUB_URL)
         if "/SethJ152/PyTerminal/main/" in self.GITHUB_URL:
