@@ -15,7 +15,7 @@ import threading
 
 class MintTerminalGUI:
     def __init__(self, root):
-        self.version = "2.5.1"
+        self.version = "2.5.2"
         self.root = root
         self.root.title(f"PyTerminal v{self.version}")
 
@@ -124,7 +124,8 @@ class MintTerminalGUI:
             "exit": self.exit_app,
             "update": self.cmd_update,
             "version": self.cmd_version,
-            "py": self.cmd_python
+            "py": self.cmd_python,
+            "why": self.cmd_why
         }
 
         self.show_prompt()
@@ -175,7 +176,8 @@ class MintTerminalGUI:
             self.print_output(f"Error: {e}", "error")
     def cmd_version(self, args=None):
         self.print_output(f"Version: {self.version}")
-
+    def cmd_why(self, _):
+        self.print_output("This project is a cross-platform terminal emulator designed to be simple, user-friendly, and fully open-source. Built with accessibility and customization in mind, it offers an intuitive interface for executing commands while remaining lightweight and efficient. Its development is driven by community collaboration, encouraging contributions, feature suggestions, and improvements from users around the world. Whether you're a beginner or a power user, this terminal aims to provide a seamless and customizable command-line experience across different operating systems, all while staying transparent and open to innovation. It's more than a tool—it's a community-powered project for modern terminal interaction.")
     def cmd_python(self, args):
         if not args:
             self.print_output("Usage: python [script.py] [args...]", "error")
@@ -444,7 +446,8 @@ class MintTerminalGUI:
             "    py         - Run a Python script",
             "    update     - Update terminal",
             "    version    - Show version",
-            "    exit       - Exit the application"
+            "    exit       - Exit the application",
+            "    why        - Learn about the project",
         ]
         self.print_output("\n".join(help_text))
         
