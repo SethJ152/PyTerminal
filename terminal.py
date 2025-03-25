@@ -11,16 +11,16 @@ import datetime
 import getpass
 from tkinter import messagebox
 from colorama import Fore, Style  # if not already imported
+import threading
 
 class MintTerminalGUI:
     def __init__(self, root):
-        self.version = "2.2.0"
+        self.version = "2.5.1"
         self.root = root
         self.root.title(f"PyTerminal v{self.version}")
 
         self.current_version = self.version
         self.GITHUB_URL = "https://raw.githubusercontent.com/SethJ152/PyTerminal/main/terminal.py"
-
 
         # Define color scheme (inspired by Linux Mint dark theme)
         self.bg_color = "#1B1D1E"
@@ -96,41 +96,41 @@ class MintTerminalGUI:
 
         self.commands = {
             "clear": self.clear_screen,
-            "clearscreen": self.clear_screen,
             "cd": self.change_directory,
-            "changedir": self.change_directory,
-            "list": self.cmd_list,
-            "currentdir": self.cmd_currentdir,
-            "showfile": self.cmd_showfile,
-            "print": self.cmd_print,
+            "ls": self.cmd_list,
+            "cdir": self.cmd_currentdir,
+            "see": self.cmd_showfile,
+            "echo": self.cmd_print,
             "run": self.cmd_run,
-            "makedir": self.cmd_makedir,
-            "removefile": self.cmd_removefile,
-            "removedir": self.cmd_removedir,
+            "create": self.cmd_makedir,
+            "removef": self.cmd_removefile,
+            "removed": self.cmd_removedir,
             "copy": self.cmd_copy,
             "move": self.cmd_move,
-            "systeminfo": self.cmd_systeminfo,
-            "currentuser": self.cmd_currentuser,
-            "currenttime": self.cmd_currenttime,
+            "info": self.cmd_systeminfo,
+            "user": self.cmd_currentuser,
+            "time": self.cmd_currenttime,
             "ip": self.cmd_ip,
-            "calculate": self.cmd_calculate,
-            "pause": self.cmd_pause,
+            "calc": self.cmd_calculate,
+            "sl": self.cmd_pause,
             "shutdown": self.cmd_shutdown,
             "reboot": self.cmd_reboot,
             "ping": self.cmd_ping,
-            "whois": self.cmd_whois,
-            "datetime": self.cmd_datetime,
-            "hostname": self.cmd_hostname,
-            "userhome": self.cmd_userhome,
+            "who": self.cmd_whois,
+            "date": self.cmd_datetime,
+            "host": self.cmd_hostname,
+            "uh": self.cmd_userhome,
             "help": self.cmd_help,
             "exit": self.exit_app,
-            "update": self.cmd_update
+            "update": self.cmd_update,
+            "version": self.cmd_version,
+            "py": self.cmd_python
         }
 
         self.show_prompt()
 
     def show_prompt(self):
-        prompt_str = f"{self.user}@{self.hostname}:{self.cwd}$ "
+        prompt_str = f"{self.user.lower()}@{self.hostname.lower()}:~$ "
         self.terminal_output.insert(tk.END, prompt_str, "prompt")
         self.terminal_output.see(tk.END)
 
@@ -173,7 +173,26 @@ class MintTerminalGUI:
             self.cwd = os.getcwd()
         except Exception as e:
             self.print_output(f"Error: {e}", "error")
+    def cmd_version(self, args=None):
+        self.print_output(f"Version: {self.version}")
 
+    def cmd_python(self, args):
+        if not args:
+            self.print_output("Usage: python [script.py] [args...]", "error")
+            return
+        try:
+            cmd = f"python3 {' '.join(args)}.py"
+            self.run_system_command(cmd)
+        except:
+            try:
+                cmd = f"python3 {' '.join(args)}.py3"
+                self.run_system_command(cmd)
+            except:
+                try:
+                    cmd = f"python3 {' '.join(args)}.py3"
+                    self.run_system_command(cmd)
+                except:
+                    self.print_output("Not found.")
     def cmd_list(self, args):
         path = args[0] if args else "."
         try:
@@ -373,45 +392,62 @@ class MintTerminalGUI:
 
 
     def run_system_command(self, command):
-        try:
-            output = subprocess.check_output(command, stderr=subprocess.STDOUT, shell=True,
-                                             universal_newlines=True, cwd=self.cwd)
-            self.print_output(output)
-        except subprocess.CalledProcessError as e:
-            self.print_output(e.output, "error")
-        except Exception as e:
-            self.print_output(str(e), "error")
+        def run():
+            try:
+                process = subprocess.Popen(
+                    command,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    shell=True,
+                    universal_newlines=True,
+                    cwd=self.cwd
+                )
+                for line in iter(process.stdout.readline, ''):
+                    if line:
+                        self.terminal_output.after(0, self.print_output, line.rstrip())
+                process.stdout.close()
+                process.wait()
+            except Exception as e:
+                self.terminal_output.after(0, self.print_output, str(e), "error")
+
+        threading.Thread(target=run, daemon=True).start()
 
     def cmd_help(self, args=None):
         help_text = [
             "Available Commands:",
-            "  clear, clearscreen - Clear the terminal",
-            "  cd, changedir      - Change directory",
-            "  list               - List contents of directory",
-            "  currentdir         - Show current working directory",
-            "  showfile           - Show contents of a file",
-            "  print              - Print text",
-            "  run                - Run system command",
-            "  makedir            - Make a directory",
-            "  removefile         - Delete a file",
-            "  removedir          - Delete a directory",
-            "  copy               - Copy file or directory",
-            "  move               - Move file or directory",
-            "  systeminfo         - Show system information",
-            "  currentuser        - Show username",
-            "  currenttime        - Show current time",
-            "  ip                 - Get public IP",
-            "  calculate          - Evaluate math expression",
-            "  pause              - Pause for N seconds",
-            "  shutdown, reboot   - System power controls",
-            "  ping, whois        - Network tools",
-            "  datetime           - Show date and time",
-            "  hostname           - Show hostname",
-            "  userhome           - Show user's home path",
-            "  help               - Show this help",
-            "  exit               - Exit the application"
+            "    clear      - Clear the terminal",
+            "    cd         - Change directory",
+            "    ls         - List contents of directory",
+            "    cdir       - Show current working directory",
+            "    see        - Show contents of a file",
+            "    echo       - Print text",
+            "    run        - Run system command",
+            "    create     - Make a directory",
+            "    removef    - Delete a file",
+            "    removed    - Delete a directory",
+            "    copy       - Copy file or directory",
+            "    move       - Move file or directory",
+            "    info       - Show system information",
+            "    user       - Show username",
+            "    time       - Show current time",
+            "    ip         - Get public IP",
+            "    calc       - Evaluate math expression",
+            "    sl         - Pause for N seconds",
+            "    shutdown   - Shutdown system",
+            "    reboot     - Reboot system",
+            "    ping       - Ping a host",
+            "    who        - Whois lookup",
+            "    date       - Show date and time",
+            "    host       - Show hostname",
+            "    uh         - Show user's home path",
+            "    help       - Show this help message",
+            "    py         - Run a Python script",
+            "    update     - Update terminal",
+            "    version    - Show version",
+            "    exit       - Exit the application"
         ]
         self.print_output("\n".join(help_text))
+        
 
     def exit_app(self, args=None):
         self.root.destroy()
