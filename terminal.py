@@ -10,19 +10,19 @@ import shutil
 import datetime
 import getpass
 from tkinter import messagebox
-from colorama import Fore, Style  # if not already imported
+from colorama import Fore, Style
 import threading
+import ast
 
 class MintTerminalGUI:
     def __init__(self, root):
-        self.version = "2.5.2"
+        self.version = "2.7.1"
         self.root = root
         self.root.title(f"PyTerminal v{self.version}")
 
         self.current_version = self.version
         self.GITHUB_URL = "https://raw.githubusercontent.com/SethJ152/PyTerminal/main/terminal.py"
 
-        # Define color scheme (inspired by Linux Mint dark theme)
         self.bg_color = "#1B1D1E"
         self.fg_color = "#C7C7C7"
         self.prompt_color = "#87FF87"
@@ -46,45 +46,31 @@ class MintTerminalGUI:
             self.hostname = "host"
         self.cwd = os.path.expanduser("~")
 
-        # Frame for input
         self.top_frame = tk.Frame(self.root, bg=self.bg_color)
         self.top_frame.pack(fill=tk.X, padx=5, pady=10)
 
         self.command_label = tk.Label(
-            self.top_frame,
-            text="Command:",
-            fg=self.highlight_color,
-            bg=self.bg_color,
-            font=("Monospace", 10)
+            self.top_frame, text="Command:", fg=self.highlight_color,
+            bg=self.bg_color, font=("Monospace", 10)
         )
         self.command_label.pack(side=tk.LEFT, padx=(5, 0))
 
         self.command_entry = tk.Entry(
-            self.top_frame,
-            bg=self.entry_bg,
-            fg=self.entry_fg,
-            insertbackground=self.entry_fg,
-            font=("Monospace", 11),
-            relief="flat",
-            borderwidth=2
+            self.top_frame, bg=self.entry_bg, fg=self.entry_fg,
+            insertbackground=self.entry_fg, font=("Monospace", 11),
+            relief="flat", borderwidth=2
         )
         self.command_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(5, 10))
         self.command_entry.bind("<Return>", self.handle_enter)
         self.command_entry.focus()
 
-        # Frame for output
         self.output_frame = tk.Frame(self.root, bg=self.bg_color)
         self.output_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=(0, 10))
 
         self.terminal_output = scrolledtext.ScrolledText(
-            self.output_frame,
-            bg=self.output_bg,
-            fg=self.output_fg,
-            insertbackground=self.output_fg,
-            font=("Monospace", 11),
-            relief="flat",
-            borderwidth=0,
-            wrap=tk.WORD
+            self.output_frame, bg=self.output_bg, fg=self.output_fg,
+            insertbackground=self.output_fg, font=("Monospace", 11),
+            relief="flat", borderwidth=0, wrap=tk.WORD
         )
         self.terminal_output.pack(fill=tk.BOTH, expand=True)
         self.terminal_output.config(state=tk.NORMAL)
@@ -174,27 +160,26 @@ class MintTerminalGUI:
             self.cwd = os.getcwd()
         except Exception as e:
             self.print_output(f"Error: {e}", "error")
+
     def cmd_version(self, args=None):
         self.print_output(f"Version: {self.version}")
+
     def cmd_why(self, _):
         self.print_output("This project is a cross-platform terminal emulator designed to be simple, user-friendly, and fully open-source. Built with accessibility and customization in mind, it offers an intuitive interface for executing commands while remaining lightweight and efficient. Its development is driven by community collaboration, encouraging contributions, feature suggestions, and improvements from users around the world. Whether you're a beginner or a power user, this terminal aims to provide a seamless and customizable command-line experience across different operating systems, all while staying transparent and open to innovation. It's more than a tool—it's a community-powered project for modern terminal interaction.")
+
     def cmd_python(self, args):
         if not args:
-            self.print_output("Usage: python [script.py] [args...]", "error")
+            self.print_output("Usage: py [script.py] [args...]", "error")
             return
-        try:
-            cmd = f"python3 {' '.join(args)}.py"
-            self.run_system_command(cmd)
-        except:
-            try:
-                cmd = f"python3 {' '.join(args)}.py3"
-                self.run_system_command(cmd)
-            except:
-                try:
-                    cmd = f"python3 {' '.join(args)}.py3"
-                    self.run_system_command(cmd)
-                except:
-                    self.print_output("Not found.")
+
+        script = args[0]
+        rest_args = args[1:]
+        if not script.endswith(".py"):
+            script += ".py"
+
+        cmd = f"{sys.executable} {script} {' '.join(rest_args)}"
+        self.run_system_command(cmd)
+
     def cmd_list(self, args):
         path = args[0] if args else "."
         try:
@@ -304,7 +289,7 @@ class MintTerminalGUI:
 
     def cmd_calculate(self, args):
         try:
-            result = eval(" ".join(args))
+            result = ast.literal_eval(" ".join(args))
             self.print_output(f"Result: {result}")
         except Exception as e:
             self.print_output(f"Error: {e}", "error")
@@ -334,6 +319,9 @@ class MintTerminalGUI:
         if not args:
             self.print_output("Usage: whois [domain]", "error")
             return
+        if shutil.which("whois") is None:
+            self.print_output("Error: 'whois' command not found on this system.", "error")
+            return
         self.run_system_command(f"whois {args[0]}")
 
     def cmd_datetime(self, args=None):
@@ -347,9 +335,7 @@ class MintTerminalGUI:
         self.print_output(os.path.expanduser("~"))
 
     def cmd_update(self, _):
-        """Download the latest terminal.py from GitHub and replace the current script."""
         self.print_output("Gathering update data...", "command")
-
         commit_url = "https://api.github.com/repos/SethJ152/PyTerminal/commits/main"
         try:
             commit_response = requests.get(commit_url)
@@ -365,7 +351,6 @@ class MintTerminalGUI:
 
         if self.current_version != latest_commit_name:
             self.print_output(f"Update available: {latest_commit_name}", "command")
-
             confirm = messagebox.askyesno("Update Available", f"Update to version '{latest_commit_name}'?\nThis will restart the terminal.")
             if not confirm:
                 self.print_output("Update cancelled.")
@@ -378,13 +363,11 @@ class MintTerminalGUI:
                     with open(script_path, "w") as f:
                         f.write(response.text)
                     self.print_output("Terminal updated successfully!", "command")
-
                     python = sys.executable
-                    if platform.system() == "Windows":
+                    if platform.system().lower() == "windows":
                         subprocess.Popen([python, script_path])
                     else:
                         os.execl(python, python, *sys.argv)
-
                 else:
                     self.print_output("Error: Unable to fetch updated code.", "error")
             except requests.exceptions.RequestException as e:
@@ -392,17 +375,13 @@ class MintTerminalGUI:
         else:
             self.print_output(f"Already up to date: {self.current_version}")
 
-
     def run_system_command(self, command):
         def run():
             try:
                 process = subprocess.Popen(
-                    command,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.STDOUT,
-                    shell=True,
-                    universal_newlines=True,
-                    cwd=self.cwd
+                    command, stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT, shell=True,
+                    universal_newlines=True, cwd=self.cwd
                 )
                 for line in iter(process.stdout.readline, ''):
                     if line:
@@ -411,7 +390,6 @@ class MintTerminalGUI:
                 process.wait()
             except Exception as e:
                 self.terminal_output.after(0, self.print_output, str(e), "error")
-
         threading.Thread(target=run, daemon=True).start()
 
     def cmd_help(self, args=None):
@@ -450,7 +428,6 @@ class MintTerminalGUI:
             "    why        - Learn about the project",
         ]
         self.print_output("\n".join(help_text))
-        
 
     def exit_app(self, args=None):
         self.root.destroy()
