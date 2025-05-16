@@ -1,5 +1,5 @@
 import os
-import subprocess
+import subprocess #mod
 required_dependencies = ['cmd', 'time', 'platform', 'sys', 'shutil', 'requests', 'readline', 'colorama']
 def install_dependencies():
     # Check and install missing dependencies
@@ -39,7 +39,7 @@ class Terminal(cmd.Cmd):
     prompt = Fore.YELLOW + user + "@" + hostname + ":~$ " + Style.RESET_ALL
     history_file = os.path.join(os.path.expanduser("~"), ".py_terminal_history")
     GITHUB_URL = "https://raw.githubusercontent.com/SethJ152/PyTerminal/WithoutGUI/terminal.py"  # GitHub URL of the terminal.py file
-    current_version = "1.10.2"
+    current_version = "1.11.2"
     def do_source(self, _):
         print(self.GITHUB_URL)
         if "/SethJ152/PyTerminal/WithoutGUI/" in self.GITHUB_URL:
@@ -76,6 +76,56 @@ class Terminal(cmd.Cmd):
             print(Fore.RED + f"Error fetching IP details: {str(e)}" + Style.RESET_ALL)
         print(Fore.GREEN + "User: " + self.user)
         print(Fore.BLUE + "Hostname: " + self.hostname + Style.RESET_ALL)
+
+    def do_upload(self, file_path):
+        """Upload a file. Usage: upload [localfilepath]"""
+        if not file_path:
+            print(Fore.RED + "Usage: upload [localfilepath]" + Style.RESET_ALL)
+            return
+        if not os.path.isfile(file_path):
+            print(Fore.RED + f"File not found: {file_path}" + Style.RESET_ALL)
+            return
+        url = "http://localhost:8000/upload"  # Or your tunnel URL
+        password = input("Enter server password: ")
+        try:
+            with open(file_path, "rb") as f:
+                files = {"file": (os.path.basename(file_path), f)}
+                data = {"password": password}
+                response = requests.post(url, files=files, data=data, timeout=30)
+            if response.status_code == 200:
+                print(Fore.GREEN + f"Upload successful: {response.json()['message']}" + Style.RESET_ALL)
+            elif response.status_code == 401:
+                print(Fore.RED + "Upload failed: Unauthorized (wrong password)" + Style.RESET_ALL)
+            else:
+                print(Fore.RED + f"Upload failed. Status: {response.status_code} {response.reason}" + Style.RESET_ALL)
+        except Exception as e:
+            print(Fore.RED + f"Error uploading file: {str(e)}" + Style.RESET_ALL)
+
+    def do_download(self, args):
+        """Download a file from the server. Usage: download [remotefilename] [localfilepath(optional)]"""
+        parts = args.split()
+        if not parts:
+            print(Fore.RED + "Usage: download [remotefilename] [localfilepath(optional)]" + Style.RESET_ALL)
+            return
+        remote_filename = parts[0]
+        local_filename = parts[1] if len(parts) > 1 else remote_filename
+        url = f"http://localhost:8000/download"
+        params = {"filename": remote_filename}
+        try:
+            response = requests.get(url, params=params, stream=True, timeout=30)
+            if response.status_code == 200:
+                with open(local_filename, "wb") as f:
+                    for chunk in response.iter_content(chunk_size=8192):
+                        if chunk:
+                            f.write(chunk)
+                print(Fore.GREEN + f"Downloaded as {local_filename}" + Style.RESET_ALL)
+            elif response.status_code == 404:
+                print(Fore.RED + "Download failed: File not found" + Style.RESET_ALL)
+            else:
+                print(Fore.RED + f"Download failed. Status: {response.status_code} {response.reason}" + Style.RESET_ALL)
+        except Exception as e:
+            print(Fore.RED + f"Error downloading file: {str(e)}" + Style.RESET_ALL)
+
     def do_version(self, _):
         # Construct raw GitHub URL for the branch WithoutGUI
         raw_url = (
