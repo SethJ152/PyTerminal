@@ -10,7 +10,7 @@ def install_dependencies():
         except ImportError:
             # If not installed, install the package using pip
             print(f"{dep} not found. Installing...")
-            subprocess.check_call([sys.executable, "-m", "pip", "install", dep])
+            subprocess.check_call([sys.executable, "-m", "pip", "install", dep, "--break-system-packages"])
 import cmd
 import time
 import platform
@@ -39,15 +39,15 @@ class Terminal(cmd.Cmd):
     prompt = Fore.YELLOW + user + "@" + hostname + ":~$ " + Style.RESET_ALL
     history_file = os.path.join(os.path.expanduser("~"), ".py_terminal_history")
     GITHUB_URL = "https://raw.githubusercontent.com/SethJ152/PyTerminal/WithoutGUI/terminal.py"  # GitHub URL of the terminal.py file
-    current_version = "1.7.6"
+    current_version = "1.10.2"
     def do_source(self, _):
         print(self.GITHUB_URL)
-        if "/SethJ152/PyTerminal/main/" in self.GITHUB_URL:
+        if "/SethJ152/PyTerminal/WithoutGUI/" in self.GITHUB_URL:
             print(Fore.GREEN + "This source is verified" + Style.RESET_ALL)
         else:
             print(Fore.RED + "THIS IS UNVERIFIED! DO NOT UPDATE!" + Style.RESET_ALL)
     def do_devtools(self, _):
-        if "SethJ152/PyTerminal/main/" in self.GITHUB_URL:
+        if "SethJ152/PyTerminal/WithoutGUI/" in self.GITHUB_URL:
             print(Fore.GREEN + "This source is verified" + Style.RESET_ALL)
         else:
             print(Fore.RED + "THIS IS AN UNVERIFIED UPDATE URL! DO NOT UPDATE!" + Style.RESET_ALL)
@@ -77,25 +77,81 @@ class Terminal(cmd.Cmd):
         print(Fore.GREEN + "User: " + self.user)
         print(Fore.BLUE + "Hostname: " + self.hostname + Style.RESET_ALL)
     def do_version(self, _):
-        print(Fore.CYAN + f"Current Version: {self.current_version}" + Style.RESET_ALL)
-        """Download the latest terminal.py from GitHub and replace the current script."""
+        # Construct raw GitHub URL for the branch WithoutGUI
+        raw_url = (
+            "https://raw.githubusercontent.com/"
+            "SethJ152/PyTerminal/WithoutGUI/terminal.py"
+        )
+
         try:
-            # Get the latest commit name from GitHub
-            commit_url = "https://api.github.com/repos/SethJ152/PyTerminal/commits/WithoutGUI"
-            commit_response = requests.get(commit_url)
-            
-            if commit_response.status_code == 200:
-                commit_data = commit_response.json()
-                latest_commit_name = commit_data['commit']['message']
-                print(Fore.CYAN + f"Latest Version: {latest_commit_name}" + Style.RESET_ALL)
-                if not self.current_version == latest_commit_name:
-                    print(Fore.RED + f"Please update!" + Style.RESET_ALL)
-                
+            # Fetch remote file contents
+            response = requests.get(raw_url, timeout=10)
+            response.raise_for_status()
+            remote_lines = response.text.splitlines()
+
+            # Read local file contents
+            local_path = os.path.abspath(sys.argv[0])
+            with open(local_path, 'r', encoding='utf-8') as f:
+                local_lines = f.read().splitlines()
+
+            # Determine sync status
+            is_synced = (local_lines == remote_lines)
+
+            # Display current version (with Modded tag if unsynced)
+            version_label = (
+                f"{self.current_version} (Modded)"
+                if not is_synced
+                else self.current_version
+            )
+            print(
+                Fore.CYAN
+                + f"Current Version: {version_label}"
+                + Style.RESET_ALL
+            )
+
+            # Fetch commit message for latest version info
+            commit_url = (
+                "https://api.github.com/repos/SethJ152/"
+                "PyTerminal/commits/WithoutGUI"
+            )
+            commit_resp = requests.get(commit_url, timeout=10)
+            latest_msg = (
+                commit_resp.json()["commit"]["message"]
+                if commit_resp.status_code == 200
+                else "Unknown"
+            )
+            print(
+                Fore.CYAN
+                + f"Latest Commit: {latest_msg}"
+                + Style.RESET_ALL
+            )
+
+            # If unsynced, show diff and prompt update
+            if not is_synced:
+                print(Fore.RED + "Discrepancy detected—please update!" + Style.RESET_ALL)
+                diff = difflib.unified_diff(
+                    local_lines,
+                    remote_lines,
+                    fromfile="local/terminal.py",
+                    tofile="github/terminal.py",
+                    lineterm=""
+                )
+                for line in diff:
+                    if line.startswith('+') and not line.startswith('+++'):
+                        print(Fore.GREEN + line + Style.RESET_ALL)
+                    elif line.startswith('-') and not line.startswith('---'):
+                        print(Fore.RED + line + Style.RESET_ALL)
+                    else:
+                        print(line)
             else:
-                print(Fore.RED + "Error: Unable to fetch the latest commit from GitHub." + Style.RESET_ALL)
+                print(Fore.GREEN + "Up to date: Local code matches GitHub." + Style.RESET_ALL)
 
         except requests.exceptions.RequestException as e:
-            print(Fore.RED + f"Error fetching data: {str(e)}" + Style.RESET_ALL)
+            print(Fore.RED + f"Network error: {e}" + Style.RESET_ALL)
+        except FileNotFoundError:
+            print(Fore.RED + f"Local file not found: {local_path}" + Style.RESET_ALL)
+        except Exception as e:
+            print(Fore.RED + f"Unexpected error: {e}" + Style.RESET_ALL)
     def do_ping(self, host):
         """Ping a host: ping [hostname or IP]"""
         if not host:
