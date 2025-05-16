@@ -39,7 +39,7 @@ class Terminal(cmd.Cmd):
     prompt = Fore.YELLOW + user + "@" + hostname + ":~$ " + Style.RESET_ALL
     history_file = os.path.join(os.path.expanduser("~"), ".py_terminal_history")
     GITHUB_URL = "https://raw.githubusercontent.com/SethJ152/PyTerminal/WithoutGUI/terminal.py"  # GitHub URL of the terminal.py file
-    current_version = "1.11.2"
+    current_version = "1.12.2"
     def do_source(self, _):
         print(self.GITHUB_URL)
         if "/SethJ152/PyTerminal/WithoutGUI/" in self.GITHUB_URL:
@@ -85,7 +85,7 @@ class Terminal(cmd.Cmd):
         if not os.path.isfile(file_path):
             print(Fore.RED + f"File not found: {file_path}" + Style.RESET_ALL)
             return
-        url = "http://localhost:8000/upload"  # Or your tunnel URL
+        url = "https://sdjgames.com/upload"  # Or your tunnel URL
         password = input("Enter server password: ")
         try:
             with open(file_path, "rb") as f:
@@ -109,7 +109,7 @@ class Terminal(cmd.Cmd):
             return
         remote_filename = parts[0]
         local_filename = parts[1] if len(parts) > 1 else remote_filename
-        url = f"http://localhost:8000/download"
+        url = f"https://sdjgames.com/download"
         params = {"filename": remote_filename}
         try:
             response = requests.get(url, params=params, stream=True, timeout=30)
