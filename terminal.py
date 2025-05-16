@@ -39,7 +39,7 @@ class Terminal(cmd.Cmd):
     prompt = Fore.YELLOW + user + "@" + hostname + ":~$ " + Style.RESET_ALL
     history_file = os.path.join(os.path.expanduser("~"), ".py_terminal_history")
     GITHUB_URL = "https://raw.githubusercontent.com/SethJ152/PyTerminal/WithoutGUI/terminal.py"  # GitHub URL of the terminal.py file
-    current_version = "1.7.5 Without GUI"
+    current_version = "1.7.6"
     def do_source(self, _):
         print(self.GITHUB_URL)
         if "/SethJ152/PyTerminal/main/" in self.GITHUB_URL:
@@ -53,7 +53,7 @@ class Terminal(cmd.Cmd):
             print(Fore.RED + "THIS IS AN UNVERIFIED UPDATE URL! DO NOT UPDATE!" + Style.RESET_ALL)
         try:
             # Get the latest commit name from GitHub
-            commit_url = "https://api.github.com/repos/SethJ152/PyTerminal/commits/main"
+            commit_url = "https://api.github.com/repos/SethJ152/PyTerminal/commits/WithoutGUI"
             commit_response = requests.get(commit_url)
             
             if commit_response.status_code == 200:
@@ -81,7 +81,7 @@ class Terminal(cmd.Cmd):
         """Download the latest terminal.py from GitHub and replace the current script."""
         try:
             # Get the latest commit name from GitHub
-            commit_url = "https://api.github.com/repos/SethJ152/PyTerminal/commits/main"
+            commit_url = "https://api.github.com/repos/SethJ152/PyTerminal/commits/WithoutGUI"
             commit_response = requests.get(commit_url)
             
             if commit_response.status_code == 200:
@@ -208,7 +208,7 @@ class Terminal(cmd.Cmd):
     def do_update(self, _):
         """Download the latest terminal.py from GitHub and replace the current script."""
         print(Fore.YELLOW + "Gathering Data..." + Style.RESET_ALL)
-        commit_url = "https://api.github.com/repos/SethJ152/PyTerminal/commits/main"
+        commit_url = "https://api.github.com/repos/SethJ152/PyTerminal/commits/WithoutGUI"
         commit_response = requests.get(commit_url)
         # Get the latest commit name from GitHub
         if commit_response.status_code == 200:
