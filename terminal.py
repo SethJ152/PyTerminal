@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
 """
-PyTerminal improved version with original update command restored.
-- Cross platform
+PyTerminal version 2.8.1 updates
 - More Linux-like commands
 - Tab completion, history, toolbar, nicer UI
-- No finance vocabulary
-- Includes 'update' command that fetches from GitHub and restarts
+- Improved comments
 """
 
 import tkinter as tk
